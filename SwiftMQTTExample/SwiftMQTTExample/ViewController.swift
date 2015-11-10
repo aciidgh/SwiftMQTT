@@ -7,19 +7,28 @@
 //
 
 import UIKit
+import SwiftMQTT
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, MQTTSessionDelegate {
 
+    var mqttSession: MQTTSession!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        mqttSession = MQTTSession(host: "localhost", port: 1883, clientID: "swift", cleanSession: true, keepAlive: 15)
+        mqttSession.delegate = self
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    func mqttSession(session: MQTTSession, didReceiveMessage message: NSData, onTopic topic: String) {
+
     }
-
-
+    
+    func errorOccurred(session: MQTTSession) {
+            
+    }
+    
+    func didDisconnectSession(session: MQTTSession) {
+        
+    }
 }
 

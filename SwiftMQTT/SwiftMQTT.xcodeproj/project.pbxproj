@@ -10,6 +10,9 @@
 		5471A89A1BF228900079610F /* SwiftMQTT.h in Headers */ = {isa = PBXBuildFile; fileRef = 5471A8991BF228900079610F /* SwiftMQTT.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5471A8A11BF228900079610F /* SwiftMQTT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5471A8961BF228900079610F /* SwiftMQTT.framework */; };
 		5471A8A61BF228900079610F /* SwiftMQTTTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8A51BF228900079610F /* SwiftMQTTTests.swift */; };
+		5471A8E01BF22E9E0079610F /* MQTTSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8DF1BF22E9E0079610F /* MQTTSession.swift */; };
+		5471A8E21BF2317F0079610F /* MQTTPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8E11BF2317F0079610F /* MQTTPacket.swift */; };
+		5471A8E41BF231900079610F /* MQTTExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8E31BF231900079610F /* MQTTExtensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +32,9 @@
 		5471A8A01BF228900079610F /* SwiftMQTTTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftMQTTTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5471A8A51BF228900079610F /* SwiftMQTTTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftMQTTTests.swift; sourceTree = "<group>"; };
 		5471A8A71BF228900079610F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5471A8DF1BF22E9E0079610F /* MQTTSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTSession.swift; sourceTree = "<group>"; };
+		5471A8E11BF2317F0079610F /* MQTTPacket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTPacket.swift; sourceTree = "<group>"; };
+		5471A8E31BF231900079610F /* MQTTExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTExtensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +79,9 @@
 			children = (
 				5471A8991BF228900079610F /* SwiftMQTT.h */,
 				5471A89B1BF228900079610F /* Info.plist */,
+				5471A8DF1BF22E9E0079610F /* MQTTSession.swift */,
+				5471A8E11BF2317F0079610F /* MQTTPacket.swift */,
+				5471A8E31BF231900079610F /* MQTTExtensions.swift */,
 			);
 			path = SwiftMQTT;
 			sourceTree = "<group>";
@@ -194,6 +203,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5471A8E01BF22E9E0079610F /* MQTTSession.swift in Sources */,
+				5471A8E41BF231900079610F /* MQTTExtensions.swift in Sources */,
+				5471A8E21BF2317F0079610F /* MQTTPacket.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -308,6 +320,7 @@
 		5471A8AB1BF228900079610F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -319,12 +332,14 @@
 				PRODUCT_BUNDLE_IDENTIFIER = im.ankit.SwiftMQTT;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
 		5471A8AC1BF228900079610F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
