@@ -1,0 +1,390 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5471A8BD1BF228A50079610F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8BC1BF228A50079610F /* AppDelegate.swift */; };
+		5471A8BF1BF228A50079610F /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8BE1BF228A50079610F /* ViewController.swift */; };
+		5471A8C21BF228A50079610F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5471A8C01BF228A50079610F /* Main.storyboard */; };
+		5471A8C41BF228A50079610F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5471A8C31BF228A50079610F /* Assets.xcassets */; };
+		5471A8C71BF228A50079610F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5471A8C51BF228A50079610F /* LaunchScreen.storyboard */; };
+		5471A8D91BF228F40079610F /* SwiftMQTT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5471A8D41BF228E60079610F /* SwiftMQTT.framework */; };
+		5471A8DB1BF228FC0079610F /* SwiftMQTT.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5471A8D41BF228E60079610F /* SwiftMQTT.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		5471A8D31BF228E60079610F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5471A8CE1BF228E50079610F /* SwiftMQTT.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 5471A8961BF228900079610F;
+			remoteInfo = SwiftMQTT;
+		};
+		5471A8D51BF228E60079610F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5471A8CE1BF228E50079610F /* SwiftMQTT.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 5471A8A01BF228900079610F;
+			remoteInfo = SwiftMQTTTests;
+		};
+		5471A8D71BF228F00079610F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5471A8CE1BF228E50079610F /* SwiftMQTT.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5471A8951BF228900079610F;
+			remoteInfo = SwiftMQTT;
+		};
+		5471A8DC1BF228FC0079610F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5471A8CE1BF228E50079610F /* SwiftMQTT.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5471A8951BF228900079610F;
+			remoteInfo = SwiftMQTT;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5471A8DE1BF228FD0079610F /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				5471A8DB1BF228FC0079610F /* SwiftMQTT.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		5471A8B91BF228A50079610F /* SwiftMQTTExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftMQTTExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5471A8BC1BF228A50079610F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		5471A8BE1BF228A50079610F /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		5471A8C11BF228A50079610F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		5471A8C31BF228A50079610F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5471A8C61BF228A50079610F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		5471A8C81BF228A50079610F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5471A8CE1BF228E50079610F /* SwiftMQTT.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SwiftMQTT.xcodeproj; path = ../../SwiftMQTT/SwiftMQTT.xcodeproj; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5471A8B61BF228A50079610F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5471A8D91BF228F40079610F /* SwiftMQTT.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		5471A8B01BF228A50079610F = {
+			isa = PBXGroup;
+			children = (
+				5471A8BB1BF228A50079610F /* SwiftMQTTExample */,
+				5471A8BA1BF228A50079610F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5471A8BA1BF228A50079610F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5471A8B91BF228A50079610F /* SwiftMQTTExample.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5471A8BB1BF228A50079610F /* SwiftMQTTExample */ = {
+			isa = PBXGroup;
+			children = (
+				5471A8CE1BF228E50079610F /* SwiftMQTT.xcodeproj */,
+				5471A8BC1BF228A50079610F /* AppDelegate.swift */,
+				5471A8BE1BF228A50079610F /* ViewController.swift */,
+				5471A8C01BF228A50079610F /* Main.storyboard */,
+				5471A8C31BF228A50079610F /* Assets.xcassets */,
+				5471A8C51BF228A50079610F /* LaunchScreen.storyboard */,
+				5471A8C81BF228A50079610F /* Info.plist */,
+			);
+			path = SwiftMQTTExample;
+			sourceTree = "<group>";
+		};
+		5471A8CF1BF228E50079610F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5471A8D41BF228E60079610F /* SwiftMQTT.framework */,
+				5471A8D61BF228E60079610F /* SwiftMQTTTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5471A8B81BF228A50079610F /* SwiftMQTTExample */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5471A8CB1BF228A50079610F /* Build configuration list for PBXNativeTarget "SwiftMQTTExample" */;
+			buildPhases = (
+				5471A8B51BF228A50079610F /* Sources */,
+				5471A8B61BF228A50079610F /* Frameworks */,
+				5471A8B71BF228A50079610F /* Resources */,
+				5471A8DE1BF228FD0079610F /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5471A8D81BF228F00079610F /* PBXTargetDependency */,
+				5471A8DD1BF228FC0079610F /* PBXTargetDependency */,
+			);
+			name = SwiftMQTTExample;
+			productName = SwiftMQTTExample;
+			productReference = 5471A8B91BF228A50079610F /* SwiftMQTTExample.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5471A8B11BF228A50079610F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 0710;
+				LastUpgradeCheck = 0710;
+				ORGANIZATIONNAME = Ankit;
+				TargetAttributes = {
+					5471A8B81BF228A50079610F = {
+						CreatedOnToolsVersion = 7.1;
+					};
+				};
+			};
+			buildConfigurationList = 5471A8B41BF228A50079610F /* Build configuration list for PBXProject "SwiftMQTTExample" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 5471A8B01BF228A50079610F;
+			productRefGroup = 5471A8BA1BF228A50079610F /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 5471A8CF1BF228E50079610F /* Products */;
+					ProjectRef = 5471A8CE1BF228E50079610F /* SwiftMQTT.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				5471A8B81BF228A50079610F /* SwiftMQTTExample */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		5471A8D41BF228E60079610F /* SwiftMQTT.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SwiftMQTT.framework;
+			remoteRef = 5471A8D31BF228E60079610F /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		5471A8D61BF228E60079610F /* SwiftMQTTTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = SwiftMQTTTests.xctest;
+			remoteRef = 5471A8D51BF228E60079610F /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5471A8B71BF228A50079610F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5471A8C71BF228A50079610F /* LaunchScreen.storyboard in Resources */,
+				5471A8C41BF228A50079610F /* Assets.xcassets in Resources */,
+				5471A8C21BF228A50079610F /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5471A8B51BF228A50079610F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5471A8BF1BF228A50079610F /* ViewController.swift in Sources */,
+				5471A8BD1BF228A50079610F /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5471A8D81BF228F00079610F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = SwiftMQTT;
+			targetProxy = 5471A8D71BF228F00079610F /* PBXContainerItemProxy */;
+		};
+		5471A8DD1BF228FC0079610F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = SwiftMQTT;
+			targetProxy = 5471A8DC1BF228FC0079610F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		5471A8C01BF228A50079610F /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				5471A8C11BF228A50079610F /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		5471A8C51BF228A50079610F /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				5471A8C61BF228A50079610F /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		5471A8C91BF228A50079610F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.1;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		5471A8CA1BF228A50079610F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		5471A8CC1BF228A50079610F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = SwiftMQTTExample/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = im.ankit.SwiftMQTTExample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		5471A8CD1BF228A50079610F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = SwiftMQTTExample/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = im.ankit.SwiftMQTTExample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5471A8B41BF228A50079610F /* Build configuration list for PBXProject "SwiftMQTTExample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5471A8C91BF228A50079610F /* Debug */,
+				5471A8CA1BF228A50079610F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5471A8CB1BF228A50079610F /* Build configuration list for PBXNativeTarget "SwiftMQTTExample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5471A8CC1BF228A50079610F /* Debug */,
+				5471A8CD1BF228A50079610F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 5471A8B11BF228A50079610F /* Project object */;
+}
