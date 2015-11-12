@@ -48,7 +48,7 @@ enum MQTTConnackResponse: UInt8, ErrorType {
 
 extension NSMutableData {
     
-    func encodeRemainingLength(length: Int) {
+    func mqtt_encodeRemainingLength(length: Int) {
         var lengthOfRemainingData = length
         repeat {
             var digit = UInt8(lengthOfRemainingData % 128);
@@ -60,27 +60,27 @@ extension NSMutableData {
         } while (lengthOfRemainingData > 0);
     }
     
-    func appendUInt8(data: UInt8) {
+    func mqtt_appendUInt8(data: UInt8) {
         var varData = data
         self.appendBytes(&varData, length: 1)
     }
     
     ///Appends two bytes
     ///Big Endian
-    func appendUInt16(data: UInt16) {
+    func mqtt_appendUInt16(data: UInt16) {
         let byteOne = UInt8(data / 256)
         let byteTwo = UInt8(data % 256)
-        self.appendUInt8(byteOne)
-        self.appendUInt8(byteTwo)
+        self.mqtt_appendUInt8(byteOne)
+        self.mqtt_appendUInt8(byteTwo)
     }
     
-    func appendMQTTData(data: NSData) {
-        self.appendUInt16(UInt16(data.length))
+    func mqtt_appendData(data: NSData) {
+        self.mqtt_appendUInt16(UInt16(data.length))
         self.appendData(data)
     }
     
-    func appendString(string: String) {
-        self.appendUInt16(UInt16(string.characters.count))
+    func mqtt_appendString(string: String) {
+        self.mqtt_appendUInt16(UInt16(string.characters.count))
         self.appendData(string.dataUsingEncoding(NSUTF8StringEncoding)!)
     }
 }

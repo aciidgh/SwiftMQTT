@@ -16,14 +16,13 @@ public protocol MQTTSessionDelegate {
 
 public typealias MQTTSessionCompletionBlock = (succeeded: Bool, error: ErrorType) -> Void
 
-public class MQTTSession: NSObject, NSStreamDelegate {
+public class MQTTSession: MQTTSessionStreamDelegate {
 
     public var username: String?
     public var password: String?
     public let cleanSession: Bool
     public let keepAlive: UInt16
-    public let host: String
-    public let port: UInt16
+
     public let clientID: String
     
     public var willMessage: MQTTPubMsg?
@@ -32,12 +31,10 @@ public class MQTTSession: NSObject, NSStreamDelegate {
     private var keepAliveTimer: NSTimer!
     private var connectionCompletionBlock: MQTTSessionCompletionBlock?
     private var messagesCompletionBlocks = [UInt16 : MQTTSessionCompletionBlock]()
-    private var inputStream:NSInputStream?
-    private var outputStream:NSOutputStream?
+    private var stream: MQTTSessionStream
     
     public init(host: String, port: UInt16, clientID: String, cleanSession: Bool, keepAlive: UInt16) {
-        self.host = host
-        self.port = port
+        stream = MQTTSessionStream(host: host, port: port)
         self.clientID = clientID
         self.cleanSession = cleanSession
         self.keepAlive = keepAlive
@@ -75,8 +72,7 @@ public class MQTTSession: NSObject, NSStreamDelegate {
     func connect(completion: MQTTSessionCompletionBlock?) {
         self.connectionCompletionBlock = completion
         //Open Stream
-        NSStream.getStreamsToHostWithName(host, port: NSInteger(port), inputStream: &inputStream, outputStream: &outputStream)
-        self.createStreamConnection()
+        stream.createStreamConnection()
         
         keepAliveTimer = NSTimer(timeInterval: Double(self.keepAlive), target: self, selector: Selector("keepAliveTimerFired"), userInfo: nil, repeats: true)
         NSRunLoop.mainRunLoop().addTimer(keepAliveTimer, forMode: NSDefaultRunLoopMode)
@@ -94,21 +90,13 @@ public class MQTTSession: NSObject, NSStreamDelegate {
     func disconnect() {
         let disconnectPacket = MQTTDisconnectPacket()
         self.sendPacket(disconnectPacket)
-        self.closeStreams()
-    }
-    
-    private func createStreamConnection() {
-        inputStream?.delegate = self
-        outputStream?.delegate = self
-        inputStream?.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-        outputStream?.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-        inputStream?.open()
-        outputStream?.open()
+        stream.closeStreams()
+        keepAliveTimer.invalidate()
+        self.delegate?.didDisconnectSession(self)
     }
     
     private func sendPacket(packet: MQTTPacket) {
-        let networkPacket = packet.networkPacket()
-        let writtenLength = outputStream?.write(UnsafePointer<UInt8>(networkPacket.bytes), maxLength: networkPacket.length)
+        let writtenLength = stream.sendPacket(packet)
         if writtenLength == -1 {
             if packet.header.packetType == .Connect {
                 self.connectionCompletionBlock?(succeeded: false, error: MQTTSessionError.SocketError)
@@ -156,67 +144,6 @@ public class MQTTSession: NSObject, NSStreamDelegate {
         self.sendPacket(mqttPingReq)
     }
     
-    public func stream(aStream: NSStream, handleEvent eventCode: NSStreamEvent) {
-        switch eventCode {
-        case NSStreamEvent.None: break
-        case NSStreamEvent.OpenCompleted: break
-        case NSStreamEvent.HasBytesAvailable:
-            if aStream == inputStream {
-                self.receiveDataOnStream(aStream)
-            }
-        case NSStreamEvent.ErrorOccurred:
-            self.delegate?.errorOccurred(self)
-            self.closeStreams()
-        case NSStreamEvent.EndEncountered:
-            self.closeStreams()
-        case NSStreamEvent.HasSpaceAvailable: break
-        default:
-            print("unknown")
-        }
-    }
-    
-    private func closeStreams() {
-        keepAliveTimer.invalidate()
-        inputStream?.close()
-        inputStream?.removeFromRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-        outputStream?.close()
-        outputStream?.removeFromRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
-        self.delegate?.didDisconnectSession(self)
-    }
-    
-    private func receiveDataOnStream(stream: NSStream) {
-        
-        var headerByte = [UInt8](count: 1, repeatedValue: 0)
-        let len = inputStream?.read(&headerByte, maxLength: 1)
-        if !(len > 0) { return; }
-        let header = MQTTPacketFixedHeader(networkByte: headerByte[0])
-        
-        ///Max Length is 2^28 = 268,435,455 (256 MB)
-        var multiplier = 1
-        var value = 0
-        var encodedByte: UInt8 = 0
-        repeat {
-            var readByte = [UInt8](count: 1, repeatedValue: 0)
-            inputStream?.read(&readByte, maxLength: 1)
-            encodedByte = readByte[0]
-            value += (Int(encodedByte) & 127) * multiplier
-            multiplier *= 128
-            if multiplier > 128*128*128 {
-                return;
-            }
-        } while ((Int(encodedByte) & 128) != 0)
-        
-        let totalLength = value
-        
-        var responseData: NSData = NSData()
-        if totalLength > 0 {
-            var buffer = [UInt8](count: totalLength, repeatedValue: 0)
-            let readLength = inputStream?.read(&buffer, maxLength: buffer.count)
-            responseData = NSData(bytes: buffer, length: readLength!)
-        }
-        self.parseReceivedData(responseData, mqttHeader: header)
-    }
-    
     private func nextMessageID() -> UInt16 {
         struct MessageIDHolder {
             static var messageID = UInt16(0)
@@ -224,4 +151,13 @@ public class MQTTSession: NSObject, NSStreamDelegate {
         MessageIDHolder.messageID++
         return MessageIDHolder.messageID;
     }
+    
+    func streamErrorOccurred(stream: MQTTSessionStream) {
+        self.delegate?.errorOccurred(self)
+    }
+    
+    func receivedData(stream: MQTTSessionStream, data: NSData, withMQTTHeader header: MQTTPacketFixedHeader) {
+        self.parseReceivedData(data, mqttHeader: header)
+    }
+
 }

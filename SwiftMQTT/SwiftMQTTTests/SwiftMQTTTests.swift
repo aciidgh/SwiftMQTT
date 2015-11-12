@@ -37,8 +37,6 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
         }
     }
     
-    
-    
     //MARK: MQTT Protocols
     func mqttSession(session: MQTTSession, didReceiveMessage message: NSData, onTopic topic: String) {
         
