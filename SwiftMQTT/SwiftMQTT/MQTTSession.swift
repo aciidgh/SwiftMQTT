@@ -147,11 +147,17 @@ public class MQTTSession: MQTTSessionStreamDelegate {
         }
         if mqttHeader.packetType == .Publish {
             let publishPacket = MQTTPublishPacket(header: mqttHeader, networkData: data)
+            self.sendPubAckForMessageID(publishPacket.messageID)
             self.delegate?.mqttSession(self, didReceiveMessage: publishPacket.message.message, onTopic: publishPacket.message.topic)
         }
         if mqttHeader.packetType == .PingResp {
             _ = MQTTPingResp(header: mqttHeader)
         }
+    }
+    
+    private func sendPubAckForMessageID(mid: UInt16) {
+        let pubAck = MQTTPubAck(messageID: mid)
+        self.sendPacket(pubAck)
     }
     
     private func callSuccessCompletionBlockForMessageID(mid: UInt16) {
