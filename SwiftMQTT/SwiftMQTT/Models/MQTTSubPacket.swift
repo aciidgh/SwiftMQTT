@@ -26,11 +26,13 @@ class MQTTSubPacket: MQTTPacket {
         
         //Payload
         let payload = NSMutableData()
-        for topic in self.topics {
-            payload.mqtt_appendString(topic.0)
-            let qos = topic.1.rawValue & 0x03
+        
+        for (key, value) in self.topics {
+            payload.mqtt_appendString(key)
+            let qos = value.rawValue & 0x03
             payload.mqtt_appendUInt8(qos)
         }
+        
         return self.finalPacket(variableHeader, payload: payload)
     }
 }

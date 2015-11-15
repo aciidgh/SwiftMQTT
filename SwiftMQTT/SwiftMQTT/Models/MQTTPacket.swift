@@ -15,12 +15,14 @@ class MQTTPacket {
     init(header: MQTTPacketFixedHeader) {
         self.header = header
     }
-    
+        
     func networkPacket() -> NSData {
         //To be implemented in subclasses
         return NSData()
     }
     
+    //Creates the actual packet to be sent using fixed header, variable header and payload
+    //Automatically encodes remaining length
     func finalPacket(variableHeader: NSData, payload: NSData) -> NSData {
         let remainingData = NSMutableData(data: variableHeader)
         remainingData.appendData(payload)
