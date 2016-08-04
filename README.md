@@ -68,5 +68,16 @@ func mqttSession(session: MQTTSession, didReceiveMessage message: NSData, onTopi
 }
 ```
 
+# Installation
+
+## CocoaPods
+
+Install using [CocoaPods](http://cocoapods.org) by adding the following lines to your Podfile:
+
+````ruby
+use_frameworks!
+pod 'SwiftMQTT'  
+````
+
 # License
 MIT
