@@ -17,15 +17,17 @@ class MQTTSessionStream: NSObject, NSStreamDelegate {
    
     internal let host: String
     internal let port: UInt16
+    internal let ssl: Bool
     
     private var inputStream:NSInputStream?
     private var outputStream:NSOutputStream?
     
     internal var delegate: MQTTSessionStreamDelegate?
     
-    init(host: String, port: UInt16) {
+    init(host: String, port: UInt16, ssl: Bool) {
         self.host = host
         self.port = port
+        self.ssl = ssl
     }
     
     func createStreamConnection() {
@@ -36,6 +38,10 @@ class MQTTSessionStream: NSObject, NSStreamDelegate {
         outputStream?.scheduleInRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
         inputStream?.open()
         outputStream?.open()
+        if ssl {
+            inputStream?.setProperty(NSStreamSocketSecurityLevelNegotiatedSSL, forKey: NSStreamSocketSecurityLevelKey)
+            outputStream?.setProperty(NSStreamSocketSecurityLevelNegotiatedSSL, forKey: NSStreamSocketSecurityLevelKey)
+        }
     }
     
     func closeStreams() {

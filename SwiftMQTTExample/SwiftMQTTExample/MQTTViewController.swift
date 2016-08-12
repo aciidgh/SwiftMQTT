@@ -50,7 +50,7 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
         let port:UInt16 = 1883
         let clientID = self.clientID()
         
-        mqttSession = MQTTSession(host: host, port: port, clientID: clientID, cleanSession: true, keepAlive: 15)
+        mqttSession = MQTTSession(host: host, port: port, clientID: clientID, cleanSession: true, keepAlive: 15, useSSL: false)
         mqttSession.delegate = self
         
         self.appendStringToTextView("Trying to connect to \(host) on port \(port) for clientID \(clientID)")

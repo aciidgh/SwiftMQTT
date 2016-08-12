@@ -16,7 +16,7 @@ Master:
 
 ## Create MQTTSession object:
 ```swift
-mqttSession = MQTTSession(host: "localhost", port: 1883, clientID: "swift", cleanSession: true, keepAlive: 15)
+mqttSession = MQTTSession(host: "localhost", port: 1883, clientID: "swift", cleanSession: true, keepAlive: 15, useSSL: false)
 ```
 
 ## Connect

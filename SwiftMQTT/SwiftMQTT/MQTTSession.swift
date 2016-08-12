@@ -32,8 +32,8 @@ public class MQTTSession: MQTTSessionStreamDelegate {
     private var messagesCompletionBlocks = [UInt16 : MQTTSessionCompletionBlock]()
     private var stream: MQTTSessionStream
     
-    public init(host: String, port: UInt16, clientID: String, cleanSession: Bool, keepAlive: UInt16) {
-        stream = MQTTSessionStream(host: host, port: port)
+    public init(host: String, port: UInt16, clientID: String, cleanSession: Bool, keepAlive: UInt16, useSSL: Bool = false) {
+        stream = MQTTSessionStream(host: host, port: port, ssl: useSSL)
         self.clientID = clientID
         self.cleanSession = cleanSession
         self.keepAlive = keepAlive

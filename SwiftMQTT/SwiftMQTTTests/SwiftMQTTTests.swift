@@ -16,7 +16,7 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
     
     override func setUp() {
         super.setUp()
-        mqttSession = MQTTSession(host: "localhost", port: 1883, clientID: "swift", cleanSession: true, keepAlive: 15)
+        mqttSession = MQTTSession(host: "localhost", port: 1883, clientID: "swift", cleanSession: true, keepAlive: 15, useSSL: false)
         mqttSession.delegate = self
         mqttSession.connect { (succeeded, error) -> Void in
             XCTAssertTrue(succeeded, "could not connect, error \(error)")
