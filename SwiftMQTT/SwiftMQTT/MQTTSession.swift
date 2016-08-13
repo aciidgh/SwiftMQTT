@@ -87,7 +87,7 @@ public class MQTTSession: MQTTSessionStreamDelegate {
         stream.delegate = self
         stream.createStreamConnection()
         
-        keepAliveTimer = NSTimer(timeInterval: Double(self.keepAlive), target: self, selector: Selector("keepAliveTimerFired"), userInfo: nil, repeats: true)
+        keepAliveTimer = NSTimer(timeInterval: Double(self.keepAlive), target: self, selector: #selector(MQTTSession.keepAliveTimerFired), userInfo: nil, repeats: true)
         NSRunLoop.mainRunLoop().addTimer(keepAliveTimer, forMode: NSDefaultRunLoopMode)
         
         //Create Connect Packet
@@ -175,8 +175,8 @@ public class MQTTSession: MQTTSessionStreamDelegate {
         struct MessageIDHolder {
             static var messageID = UInt16(0)
         }
-        MessageIDHolder.messageID++
-        return MessageIDHolder.messageID;
+        MessageIDHolder.messageID += 1
+        return MessageIDHolder.messageID
     }
 
     //MARK:- MQTTSessionStreamDelegates
