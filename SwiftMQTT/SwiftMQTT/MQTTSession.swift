@@ -112,7 +112,7 @@ public class MQTTSession: MQTTSessionStreamDelegate {
     
     private func disconnectionCleanup() {
         stream.closeStreams()
-        keepAliveTimer.invalidate()
+        keepAliveTimer?.invalidate()
         self.delegate?.didDisconnectSession(self)
     }
     
