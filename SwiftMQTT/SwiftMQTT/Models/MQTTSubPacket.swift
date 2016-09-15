@@ -13,7 +13,7 @@ class MQTTSubPacket: MQTTPacket {
     let topics: [String: MQTTQoS]
     let messageID: UInt16
     
-    init(topics: [String : MQTTQoS], messageID: UInt16) {
+    init(topics: [String: MQTTQoS], messageID: UInt16) {
         self.topics = topics
         self.messageID = messageID
         super.init(header: MQTTPacketFixedHeader(packetType: .subscribe, flags: 0x02))

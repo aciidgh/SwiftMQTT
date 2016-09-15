@@ -15,7 +15,7 @@ enum MQTTSessionError: Error {
 
 enum MQTTPacketType: UInt8 {
     case connect        = 0x01
-    case connack        = 0x02
+    case connAck        = 0x02
     case publish        = 0x03
     case pubAck         = 0x04
     case pubRec         = 0x05
@@ -28,7 +28,6 @@ enum MQTTPacketType: UInt8 {
     case pingReq        = 0x0C
     case pingResp       = 0x0D
     case disconnect     = 0x0E
-    
 }
 
 public enum MQTTQoS: UInt8 {
@@ -37,7 +36,7 @@ public enum MQTTQoS: UInt8 {
     case exactlyOnce    = 0x02
 }
 
-enum MQTTConnackResponse: UInt8, Error {
+enum MQTTConnAckResponse: UInt8, Error {
     case connectionAccepted     = 0x00
     case badProtocol            = 0x01
     case clientIDRejected       = 0x02
@@ -51,13 +50,13 @@ extension Data {
     mutating func mqtt_encodeRemaining(length: Int) {
         var lengthOfRemainingData = length
         repeat {
-            var digit = UInt8(lengthOfRemainingData % 128);
-            lengthOfRemainingData /= 128;
-            if (lengthOfRemainingData > 0) {
-                digit |= 0x80;
+            var digit = UInt8(lengthOfRemainingData % 128)
+            lengthOfRemainingData /= 128
+            if lengthOfRemainingData > 0 {
+                digit |= 0x80
             }
             append(&digit, count: 1)
-        } while (lengthOfRemainingData > 0);
+        } while lengthOfRemainingData > 0
     }
     
     mutating func mqtt_append(_ data: UInt8) {
@@ -65,8 +64,8 @@ extension Data {
         append(&varData, count: 1)
     }
     
-    /// Appends two bytes
-    /// Big Endian
+    // Appends two bytes
+    // Big Endian
     mutating func mqtt_append(_ data: UInt16) {
         let byteOne = UInt8(data / 256)
         let byteTwo = UInt8(data % 256)

@@ -26,8 +26,9 @@ class MQTTPubAck: MQTTPacket {
     }
     
     init(header: MQTTPacketFixedHeader, networkData: Data) {
-        let buffer = (networkData as NSData).bytes.bindMemory(to: UInt8.self, capacity: networkData.count)
-        messageID = (UInt16(buffer[0]) * UInt16(256)) + UInt16(buffer[1])
+        
+        messageID = (UInt16(networkData[0]) * UInt16(256)) + UInt16(networkData[1])
+        
         super.init(header: header)
     }
 }

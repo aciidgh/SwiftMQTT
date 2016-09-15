@@ -9,6 +9,7 @@
 import Foundation
 
 class MQTTPublishPacket: MQTTPacket {
+
     let messageID: UInt16
     let message: MQTTPubMsg
     
@@ -34,36 +35,29 @@ class MQTTPublishPacket: MQTTPacket {
         if message.QoS != .atMostOnce {
             variableHeader.mqtt_append(messageID)
         }
-        
         // Payload
-        let payload = message.message
+        let payload = message.payload
         return finalPacket(variableHeader, payload: payload)
     }
     
     init(header: MQTTPacketFixedHeader, networkData: Data) {
         
-        var bytes = (networkData as NSData).bytes.bindMemory(to: UInt8.self, capacity: networkData.count)
-        let topicLength = 256 * Int(bytes[0]) + Int(bytes[1])
-        
+        let topicLength = 256 * Int(networkData[0]) + Int(networkData[1])
         let topicData = networkData.subdata(in: 2..<topicLength+2)
         let topic = String(data: topicData, encoding: .utf8)!
         
+        let qos = MQTTQoS(rawValue: header.flags & 0x06)!
         var payload = networkData.subdata(in: 2+topicLength..<networkData.endIndex)
         
-        let qos = MQTTQoS(rawValue: header.flags & 0x06)!
-        
-        if qos != .atMostOnce { // FIXME: lol fix this
-            bytes = (payload as NSData).bytes.bindMemory(to: UInt8.self, capacity: payload.count)
-            messageID = 256 * UInt16(bytes[0]) + UInt16(bytes[1])
+        if qos != .atMostOnce {
+            messageID = 256 * UInt16(payload[0]) + UInt16(payload[1])
             payload = payload.subdata(in: 2..<payload.endIndex)
-            
         } else {
             messageID = 0
         }
         
         let retain = (header.flags & 0x01) == 0x01
-        
-        message = MQTTPubMsg(topic: topic, message: payload, retain: retain, QoS: qos)
+        message = MQTTPubMsg(topic: topic, payload: payload, retain: retain, QoS: qos)
         
         super.init(header: header)
     }

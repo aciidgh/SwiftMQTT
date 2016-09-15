@@ -18,7 +18,7 @@ class MQTTConnectPacket: MQTTPacket {
     
     var username: String? = nil
     var password: String? = nil
-    var willMessage: MQTTPubMsg? = nil
+    var lastWillMessage: MQTTPubMsg? = nil
     
     init(clientID: String, cleanSession: Bool, keepAlive: UInt16) {
         self.protocolName = "MQTT"
@@ -31,17 +31,17 @@ class MQTTConnectPacket: MQTTPacket {
     
     func encodedConnectFlags() -> UInt8 {
         var flags = UInt8(0)
-        if(cleanSession) {
+        if cleanSession {
             flags |= 0x02
         }
         
-        if let willMessage = willMessage {
+        if let message = lastWillMessage {
             flags |= 0x04
             
-            if willMessage.retain {
+            if message.retain {
                 flags |= 0x20
             }
-            let qos = UInt8(willMessage.QoS.rawValue)
+            let qos = message.QoS.rawValue
             flags |= qos << 3
         }
         
@@ -57,31 +57,23 @@ class MQTTConnectPacket: MQTTPacket {
     }
     
     override func networkPacket() -> Data {
-        // Variable Header
+        
         var variableHeader = Data()
-        // Protocol Name
         variableHeader.mqtt_append(protocolName)
-        // Protocol Level
         variableHeader.mqtt_append(protocolLevel)
-        // Connect Flags
         variableHeader.mqtt_append(encodedConnectFlags())
-        // Keep Alive
         variableHeader.mqtt_append(keepAlive)
         
-        // Payload
         var payload = Data()
-        // Client ID
         payload.mqtt_append(clientID)
-        // Will Packet
-        if let willMessage = willMessage {
-            payload.mqtt_append(willMessage.topic)
-            payload.mqtt_append(willMessage.message)
+        
+        if let message = lastWillMessage {
+            payload.mqtt_append(message.topic)
+            payload.mqtt_append(message.payload)
         }
-        // Username
         if let username = username {
             payload.mqtt_append(username)
         }
-        // Password
         if let password = password {
             payload.mqtt_append(password)
         }

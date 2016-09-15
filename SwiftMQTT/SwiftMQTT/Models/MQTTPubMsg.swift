@@ -11,13 +11,13 @@ import Foundation
 open class MQTTPubMsg {
     
     open let topic: String
-    open let message: Data
+    open let payload: Data
     open let retain: Bool
     open let QoS: MQTTQoS
     
-    public init(topic: String, message: Data, retain: Bool, QoS: MQTTQoS) {
+    public init(topic: String, payload: Data, retain: Bool, QoS: MQTTQoS) {
         self.topic = topic
-        self.message = message
+        self.payload = payload
         self.retain = retain
         self.QoS = QoS
     }

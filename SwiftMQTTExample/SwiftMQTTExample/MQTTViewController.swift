@@ -20,6 +20,7 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         textView.text = nil
         establishConnection()
         
@@ -36,7 +37,7 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     
     func keyboardWillShow(_ notification: Notification) {
         let userInfo = (notification as NSNotification).userInfo! as NSDictionary
-        let kbHeight = (userInfo.object(forKey: UIKeyboardFrameBeginUserInfoKey) as AnyObject).cgRectValue.size.height
+        let kbHeight = (userInfo.object(forKey: UIKeyboardFrameBeginUserInfoKey) as! NSValue).cgRectValue.size.height
         bottomConstraint.constant = kbHeight
     }
     
@@ -45,15 +46,14 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     }
     
     func establishConnection() {
-        
         let host = "localhost"
         let port: UInt16 = 1883
         let clientID = self.clientID()
         
         mqttSession = MQTTSession(host: host, port: port, clientID: clientID, cleanSession: true, keepAlive: 15, useSSL: false)
         mqttSession.delegate = self
-        
         appendStringToTextView("Trying to connect to \(host) on port \(port) for clientID \(clientID)")
+
         mqttSession.connect {
             if !$0 {
                 self.appendStringToTextView("Error Occurred During connection \($1)")
@@ -66,7 +66,7 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     
     func subscribeToChannel() {
         let subChannel = "/#"
-        mqttSession.subscribe(subChannel, qos: MQTTQoS.atLeastOnce) {
+        mqttSession.subscribe(to: subChannel, delivering: .atMostOnce) {
             if !$0 {
                 self.appendStringToTextView("Error Occurred During subscription \($1)")
                 return
@@ -77,20 +77,22 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     
     func appendStringToTextView(_ string: String) {
         textView.text = "\(textView.text ?? "")\n\(string)"
+        let range = NSMakeRange(textView.text.characters.count - 1, 1)
+        textView.scrollRangeToVisible(range)
     }
     
-    // MARK:- MQTTSessionDelegates
+    // MARK: - MQTTSessionDelegates
 
-    func mqttSession(_ session: MQTTSession, didReceiveMessage message: Data, onTopic topic: String) {
+    func mqttSession(session: MQTTSession, received message: Data, in topic: String) {
 		let string = String(data: message, encoding: .utf8)!
         appendStringToTextView("data received on topic \(topic) message \(string)")
     }
     
-    func socketErrorOccurred(_ session: MQTTSession) {
+    func mqttSocketErrorOccurred(session: MQTTSession) {
         appendStringToTextView("Socket Error")
     }
     
-    func didDisconnectSession(_ session: MQTTSession) {
+    func mqttDidDisconnect(session: MQTTSession) {
         appendStringToTextView("Session Disconnected.")
     }
     
@@ -110,7 +112,7 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
 			else { return }
 		
 		let data = message.data(using: .utf8)!
-		mqttSession.publishData(data, onTopic: channel, withQoS: .atLeastOnce, shouldRetain: false) {
+		mqttSession.publish(data, in: channel, delivering: .atMostOnce, retain: false) {
 			if !$0 {
 				self.appendStringToTextView("Error Occurred During Publish \($1)")
 				return
@@ -140,13 +142,13 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     
     // http://stackoverflow.com/questions/26845307/generate-random-alphanumeric-string-in-swift
     func randomStringWithLength(_ len: Int) -> String {
-        let letters: NSString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        let letters = Array("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".characters)
 
         var randomString = String()
         for _ in 0..<len {
-            let length = UInt32 (letters.length)
+            let length = UInt32(letters.count)
             let rand = arc4random_uniform(length)
-			randomString += String(format: "%C", letters.character(at: Int(rand)))
+			randomString += String(letters[Int(rand)])
         }
         return String(randomString)
     }
