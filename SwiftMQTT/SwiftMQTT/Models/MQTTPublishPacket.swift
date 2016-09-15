@@ -15,10 +15,10 @@ class MQTTPublishPacket: MQTTPacket {
     init(messageID: UInt16, message: MQTTPubMsg) {
         self.messageID = messageID
         self.message = message
-        super.init(header: MQTTPacketFixedHeader(packetType: .Publish, flags: MQTTPublishPacket.fixedHeaderFlagsForMessage(message)))
+        super.init(header: MQTTPacketFixedHeader(packetType: .publish, flags: MQTTPublishPacket.fixedHeaderFlags(for: message)))
     }
     
-    class func fixedHeaderFlagsForMessage(message: MQTTPubMsg) -> UInt8 {
+    class func fixedHeaderFlags(for message: MQTTPubMsg) -> UInt8 {
         var flags = UInt8(0)
         if message.retain {
             flags |= 0x08
@@ -27,45 +27,43 @@ class MQTTPublishPacket: MQTTPacket {
         return flags
     }
     
-    override func networkPacket() -> NSData {
-        //Variable Header
-        let variableHeader = NSMutableData()
-        variableHeader.mqtt_appendString(self.message.topic)
-        if self.message.QoS != .AtMostOnce {
-            variableHeader.mqtt_appendUInt16(self.messageID)
+    override func networkPacket() -> Data {
+        // Variable Header
+        var variableHeader = Data()
+        variableHeader.mqtt_append(message.topic)
+        if message.QoS != .atMostOnce {
+            variableHeader.mqtt_append(messageID)
         }
         
-        //Payload
-        let payload = self.message.message
-        return self.finalPacket(variableHeader, payload: payload)
+        // Payload
+        let payload = message.message
+        return finalPacket(variableHeader, payload: payload)
     }
     
-    init(header: MQTTPacketFixedHeader, networkData: NSData) {
+    init(header: MQTTPacketFixedHeader, networkData: Data) {
         
-        var readingData = networkData
-        
-        var bytes = UnsafePointer<UInt8>(readingData.bytes)
+        var bytes = (networkData as NSData).bytes.bindMemory(to: UInt8.self, capacity: networkData.count)
         let topicLength = 256 * Int(bytes[0]) + Int(bytes[1])
-        let topic = NSString(data: readingData.subdataWithRange(NSMakeRange(2, topicLength)), encoding: NSUTF8StringEncoding) as! String
         
-        readingData = readingData.subdataWithRange(NSMakeRange(2+topicLength, readingData.length - topicLength-2))
+        let topicData = networkData.subdata(in: 2..<topicLength+2)
+        let topic = String(data: topicData, encoding: .utf8)!
+        
+        var payload = networkData.subdata(in: 2+topicLength..<networkData.endIndex)
         
         let qos = MQTTQoS(rawValue: header.flags & 0x06)!
         
-        if qos != .AtMostOnce { //Fixme: lol fix this
-            bytes = UnsafePointer<UInt8>(readingData.bytes)
-            self.messageID = 256 * UInt16(bytes[0]) + UInt16(bytes[1])
-            readingData = readingData.subdataWithRange(NSMakeRange(2, readingData.length - 2)) //because we read two bytes
+        if qos != .atMostOnce { // FIXME: lol fix this
+            bytes = (payload as NSData).bytes.bindMemory(to: UInt8.self, capacity: payload.count)
+            messageID = 256 * UInt16(bytes[0]) + UInt16(bytes[1])
+            payload = payload.subdata(in: 2..<payload.endIndex)
             
         } else {
-            self.messageID = 0
+            messageID = 0
         }
-        
-        let responseData = readingData // reamining data will be payload
         
         let retain = (header.flags & 0x01) == 0x01
         
-        self.message = MQTTPubMsg(topic: topic, message: responseData, retain: retain, QoS: qos)
+        message = MQTTPubMsg(topic: topic, message: payload, retain: retain, QoS: qos)
         
         super.init(header: header)
     }

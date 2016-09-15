@@ -9,10 +9,12 @@
 import Foundation
 
 class MQTTPingPacket: MQTTPacket {
+    
     init() {
-        super.init(header: MQTTPacketFixedHeader(packetType: MQTTPacketType.PingReq, flags: 0))
+        super.init(header: MQTTPacketFixedHeader(packetType: MQTTPacketType.pingReq, flags: 0))
     }
-    override func networkPacket() -> NSData {
-        return self.finalPacket(NSData(), payload: NSData())
+    
+    override func networkPacket() -> Data {
+        return finalPacket(Data(), payload: Data())
     }
 }

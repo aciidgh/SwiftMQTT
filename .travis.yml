@@ -1,8 +1,8 @@
 language: objective-c 
-osx_image: xcode7.3
+osx_image: xcode8
 before_install:
 - brew update
 - brew install mosquitto
 script:
 - /usr/local/opt/mosquitto/sbin/mosquitto -d
-- xcodebuild -project SwiftMQTT/SwiftMQTT.xcodeproj -scheme SwiftMQTT -sdk iphonesimulator test
+- xcodebuild -project SwiftMQTT/SwiftMQTT.xcodeproj -scheme SwiftMQTT -sdk iphonesimulator -destination "name=iPhone 6s" test

@@ -13,13 +13,13 @@ class MQTTConnAckPacket: MQTTPacket {
     let sessionPresent: Bool
     let response: MQTTConnackResponse
     
-    init(header: MQTTPacketFixedHeader, networkData: NSData) {
-        //FIXME: fix
-        var buffer = [UInt8](count: 2, repeatedValue: 0)
-        networkData.getBytes(&buffer, range: NSMakeRange(0, 2))
+    init(header: MQTTPacketFixedHeader, networkData: Data) {
+        // FIXME: fix
+        var buffer = [UInt8](repeating: 0, count: 2)
+        (networkData as NSData).getBytes(&buffer, range: NSMakeRange(0, 2))
         
-        self.sessionPresent = (buffer[0] & 0x01) == 0x01
-        self.response = MQTTConnackResponse(rawValue: buffer[1])!
+        sessionPresent = (buffer[0] & 0x01) == 0x01
+        response = MQTTConnackResponse(rawValue: buffer[1])!
         
         super.init(header: header)
     }

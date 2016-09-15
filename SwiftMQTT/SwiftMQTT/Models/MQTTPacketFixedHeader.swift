@@ -19,13 +19,13 @@ class MQTTPacketFixedHeader {
     }
     
     init(networkByte: UInt8) {
-        self.packetType = MQTTPacketType(rawValue: networkByte >> 4)!
-        self.flags = networkByte & 0x0F
+        packetType = MQTTPacketType(rawValue: networkByte >> 4)!
+        flags = networkByte & 0x0F
     }
     
-    func networkPacket() -> NSData {
+    func networkPacket() -> Data {
         var fixedHeaderFirstByte = UInt8(0)
-        fixedHeaderFirstByte = (0x0F & flags) | (self.packetType.rawValue << 4)
-        return NSData(bytes: &fixedHeaderFirstByte, length: 1)
+        fixedHeaderFirstByte = (0x0F & flags) | (packetType.rawValue << 4)
+        return Data(bytes: &fixedHeaderFirstByte, count: 1)
     }
 }
