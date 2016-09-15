@@ -30,7 +30,7 @@ mqttSession.connect { (succeeded, error) -> Void in
 
 ## Subscribe
 ```swift
-mqttSession.subscribe("/hey/cool", qos: MQTTQoS.AtLeastOnce) { (succeeded, error) -> Void in
+mqttSession.subscribe("/hey/cool", qos: MQTTQoS.atLeastOnce) { (succeeded, error) -> Void in
  if succeeded {
     print("Subscribed!")
   }
@@ -48,13 +48,14 @@ mqttSession.subscribe("/hey/cool", qos: MQTTQoS.AtLeastOnce) { (succeeded, error
 ## Publish
 ```swift
 let jsonDict = ["hey" : "sup"]
-let data = try! NSJSONSerialization.dataWithJSONObject(jsonDict, options: NSJSONWritingOptions.PrettyPrinted)
+let data = try! JSONSerialization.data(withJSONObject: jsonDict, options: .prettyPrinted)
 
-mqttSession.publishData(data, onTopic: "/hey/wassap", withQoS: MQTTQoS.AtLeastOnce, shouldRetain: false) { (succeeded, error) -> Void in
+mqttSession.publishData(data, onTopic: "/hey/wassap", withQoS: MQTTQoS.atLeastOnce, shouldRetain: false) { (succeeded, error) -> Void in
   if succeeded {
     print("Published!")
   }
 }
+
 ```
 
 ## Conform to `MQTTSessionDelegate` to receive messages 
@@ -62,9 +63,9 @@ mqttSession.publishData(data, onTopic: "/hey/wassap", withQoS: MQTTQoS.AtLeastOn
 mqttSession.delegate = self
 ```
 ```swift
-func mqttSession(session: MQTTSession, didReceiveMessage message: NSData, onTopic topic: String) {
-	let stringData = NSString(data: message, encoding: NSUTF8StringEncoding) as! String
-	print("data received on topic \(topic) message \(stringData)")
+func mqttSession(session: MQTTSession, didReceiveMessage message: Data, onTopic topic: String) {
+	let string = String(data: message, encoding: .utf8)!
+	print("data received on topic \(topic) message \(string)")
 }
 ```
 
