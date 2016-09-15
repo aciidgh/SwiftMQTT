@@ -2,10 +2,10 @@
 Pod::Spec.new do |s|
     
     s.name         = "SwiftMQTT"
-    s.version      = "1.0.2"
-    s.summary      = "MQTT Client in pure swift"
+    s.version      = "1.1.0"
+    s.summary      = "MQTT Client in pure Swift"
     s.description  = <<-DESC
-    MQTT Client in pure swift
+    MQTT Client in Swift 3.0 based on MQTT Version 3.1.1
     DESC
     
     s.homepage     = "https://github.com/aciidb0mb3r/SwiftMQTT"
