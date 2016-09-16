@@ -8,79 +8,78 @@
 
 import Foundation
 
-enum MQTTSessionError: ErrorType {
-    case None
-    case SocketError
+enum MQTTSessionError: Error {
+    case none
+    case socketError
 }
 
 enum MQTTPacketType: UInt8 {
-    case Connect        = 0x01
-    case Connack        = 0x02
-    case Publish        = 0x03
-    case PubAck         = 0x04
-    case PubRec         = 0x05
-    case PubRel         = 0x06
-    case PubComp        = 0x07
-    case Subscribe      = 0x08
-    case SubAck         = 0x09
-    case UnSubscribe    = 0x0A
-    case UnSubAck       = 0x0B
-    case PingReq        = 0x0C
-    case PingResp       = 0x0D
-    case Disconnect     = 0x0E
-    
+    case connect        = 0x01
+    case connAck        = 0x02
+    case publish        = 0x03
+    case pubAck         = 0x04
+    case pubRec         = 0x05
+    case pubRel         = 0x06
+    case pubComp        = 0x07
+    case subscribe      = 0x08
+    case subAck         = 0x09
+    case unSubscribe    = 0x0A
+    case unSubAck       = 0x0B
+    case pingReq        = 0x0C
+    case pingResp       = 0x0D
+    case disconnect     = 0x0E
 }
 
 public enum MQTTQoS: UInt8 {
-    case AtMostOnce     = 0x0
-    case AtLeastOnce    = 0x01
-    case ExactlyOnce    = 0x02
+    case atMostOnce     = 0x0
+    case atLeastOnce    = 0x01
+    case exactlyOnce    = 0x02
 }
 
-enum MQTTConnackResponse: UInt8, ErrorType {
-    case ConnectionAccepted     = 0x00
-    case BadProtocol            = 0x01
-    case ClientIDRejected       = 0x02
-    case ServerUnavailable      = 0x03
-    case BadUsernameOrPassword  = 0x04
-    case NotAuthorized          = 0x05
+enum MQTTConnAckResponse: UInt8, Error {
+    case connectionAccepted     = 0x00
+    case badProtocol            = 0x01
+    case clientIDRejected       = 0x02
+    case serverUnavailable      = 0x03
+    case badUsernameOrPassword  = 0x04
+    case notAuthorized          = 0x05
 }
 
-extension NSMutableData {
+extension Data {
     
-    func mqtt_encodeRemainingLength(length: Int) {
+    mutating func mqtt_encodeRemaining(length: Int) {
         var lengthOfRemainingData = length
         repeat {
-            var digit = UInt8(lengthOfRemainingData % 128);
-            lengthOfRemainingData /= 128;
-            if (lengthOfRemainingData > 0) {
-                digit |= 0x80;
+            var digit = UInt8(lengthOfRemainingData % 128)
+            lengthOfRemainingData /= 128
+            if lengthOfRemainingData > 0 {
+                digit |= 0x80
             }
-            self.appendBytes(&digit, length: 1)
-        } while (lengthOfRemainingData > 0);
+            append(&digit, count: 1)
+        } while lengthOfRemainingData > 0
     }
     
-    func mqtt_appendUInt8(data: UInt8) {
+    mutating func mqtt_append(_ data: UInt8) {
         var varData = data
-        self.appendBytes(&varData, length: 1)
+        append(&varData, count: 1)
     }
     
-    ///Appends two bytes
-    ///Big Endian
-    func mqtt_appendUInt16(data: UInt16) {
+    // Appends two bytes
+    // Big Endian
+    mutating func mqtt_append(_ data: UInt16) {
         let byteOne = UInt8(data / 256)
         let byteTwo = UInt8(data % 256)
-        self.mqtt_appendUInt8(byteOne)
-        self.mqtt_appendUInt8(byteTwo)
+        mqtt_append(byteOne)
+        mqtt_append(byteTwo)
     }
     
-    func mqtt_appendData(data: NSData) {
-        self.mqtt_appendUInt16(UInt16(data.length))
-        self.appendData(data)
+    mutating func mqtt_append(_ data: Data) {
+        mqtt_append(UInt16(data.count))
+        append(data)
     }
     
-    func mqtt_appendString(string: String) {
-        self.mqtt_appendUInt16(UInt16(string.characters.count))
-        self.appendData(string.dataUsingEncoding(NSUTF8StringEncoding)!)
+    mutating func mqtt_append(_ string: String) {
+        mqtt_append(UInt16(string.characters.count))
+        append(string.data(using: .utf8)!)
     }
 }

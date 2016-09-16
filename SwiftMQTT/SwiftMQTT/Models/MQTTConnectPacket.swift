@@ -18,7 +18,7 @@ class MQTTConnectPacket: MQTTPacket {
     
     var username: String? = nil
     var password: String? = nil
-    var willMessage: MQTTPubMsg? = nil
+    var lastWillMessage: MQTTPubMsg? = nil
     
     init(clientID: String, cleanSession: Bool, keepAlive: UInt16) {
         self.protocolName = "MQTT"
@@ -26,66 +26,58 @@ class MQTTConnectPacket: MQTTPacket {
         self.cleanSession = cleanSession
         self.keepAlive = keepAlive
         self.clientID = clientID
-        super.init(header: MQTTPacketFixedHeader(packetType: .Connect, flags: 0))
+        super.init(header: MQTTPacketFixedHeader(packetType: .connect, flags: 0))
     }
     
     func encodedConnectFlags() -> UInt8 {
         var flags = UInt8(0)
-        if(self.cleanSession) {
+        if cleanSession {
             flags |= 0x02
         }
         
-        if let willMessage = self.willMessage {
+        if let message = lastWillMessage {
             flags |= 0x04
             
-            if willMessage.retain {
+            if message.retain {
                 flags |= 0x20
             }
-            let qos = UInt8(willMessage.QoS.rawValue)
+            let qos = message.QoS.rawValue
             flags |= qos << 3
         }
         
-        if let _ = self.username {
+        if username != nil {
             flags |= 0x80
         }
         
-        if let _ = self.password {
+        if password != nil {
             flags |= 0x40
         }
         
         return flags
     }
     
-    override func networkPacket() -> NSData {
-        //Variable Header
-        let variableHeader = NSMutableData()
-        //Protocol Name
-        variableHeader.mqtt_appendString(self.protocolName)
-        //Protocol Level
-        variableHeader.mqtt_appendUInt8(self.protocolLevel)
-        //Connect Flags
-        variableHeader.mqtt_appendUInt8(self.encodedConnectFlags())
-        //Keep Alive
-        variableHeader.mqtt_appendUInt16(self.keepAlive)
+    override func networkPacket() -> Data {
         
-        //Payload
-        let payload = NSMutableData()
-        //Client ID
-        payload.mqtt_appendString(self.clientID)
-        //Will Packet
-        if let willMessage = self.willMessage {
-            payload.mqtt_appendString(willMessage.topic)
-            payload.mqtt_appendData(willMessage.message)
+        var variableHeader = Data()
+        variableHeader.mqtt_append(protocolName)
+        variableHeader.mqtt_append(protocolLevel)
+        variableHeader.mqtt_append(encodedConnectFlags())
+        variableHeader.mqtt_append(keepAlive)
+        
+        var payload = Data()
+        payload.mqtt_append(clientID)
+        
+        if let message = lastWillMessage {
+            payload.mqtt_append(message.topic)
+            payload.mqtt_append(message.payload)
         }
-        //Username
-        if let username = self.username {
-            payload.mqtt_appendString(username)
+        if let username = username {
+            payload.mqtt_append(username)
         }
-        ///Password
-        if let password = self.password {
-            payload.mqtt_appendString(password)
+        if let password = password {
+            payload.mqtt_append(password)
         }
         
-        return self.finalPacket(variableHeader, payload: payload)
+        return finalPacket(variableHeader, payload: payload)
     }
 }

@@ -11,10 +11,10 @@ import Foundation
 class MQTTDisconnectPacket: MQTTPacket {
     
     init() {
-        super.init(header: MQTTPacketFixedHeader(packetType: MQTTPacketType.Disconnect, flags: 0))
+        super.init(header: MQTTPacketFixedHeader(packetType: .disconnect, flags: 0))
     }
     
-    override func networkPacket() -> NSData {
-        return self.finalPacket(NSData(), payload: NSData())
+    override func networkPacket() -> Data {
+        return finalPacket(Data(), payload: Data())
     }
 }

@@ -1,25 +1,27 @@
 # SwiftMQTT
-MQTT Client in pure swift ❤️
 
-Master:
+MQTT Client in pure Swift ❤️️
+
 [![Build Status](https://travis-ci.org/aciidb0mb3r/SwiftMQTT.svg)](https://travis-ci.org/aciidb0mb3r/SwiftMQTT)
+[![Version](https://img.shields.io/cocoapods/v/SwiftMQTT.svg?style=flat)](http://cocoapods.org/pods/SwiftMQTT)
+[![License](https://img.shields.io/cocoapods/l/SwiftMQTT.svg?style=flat)](http://cocoapods.org/pods/SwiftMQTT)
 
-# Info
-* Fully written in swift from ground up
-* Closures everywhere :D
+## Info
+* Fully written in Swift from ground up
+* Closures everywhere 😃
 * Includes test cases and sample project
 * Based on MQTT Version 3.1.1 (http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Toc398718043)
 
 ![Sample Project Screenshot](http://i.imgur.com/9lefVmVl.png)
 
-# How to use
+## How to use
 
-## Create MQTTSession object:
+### Create Session
 ```swift
 mqttSession = MQTTSession(host: "localhost", port: 1883, clientID: "swift", cleanSession: true, keepAlive: 15, useSSL: false)
 ```
 
-## Connect
+### Connect
 ```swift
 mqttSession.connect { (succeeded, error) -> Void in
   if succeeded {
@@ -28,49 +30,49 @@ mqttSession.connect { (succeeded, error) -> Void in
 }
 ```
 
-## Subscribe
+### Subscribe
 ```swift
-mqttSession.subscribe("/hey/cool", qos: MQTTQoS.AtLeastOnce) { (succeeded, error) -> Void in
+mqttSession.subscribe(to: "/hey/cool", delivering: .atLeastOnce) { (succeeded, error) -> Void in
  if succeeded {
     print("Subscribed!")
   }
 }
 ```
 
-## Unsubscribe
+### Unsubscribe
 ```swift
- mqttSession.unSubscribe(["/ok/cool", "/no/ok"]) { (succeeded, error) -> Void in
+ mqttSession.unSubscribe(from: ["/ok/cool", "/no/ok"]) { (succeeded, error) -> Void in
   if succeeded {
     print("unSubscribed!")
   }
 }
 ```
-## Publish
+
+### Publish
 ```swift
 let jsonDict = ["hey" : "sup"]
-let data = try! NSJSONSerialization.dataWithJSONObject(jsonDict, options: NSJSONWritingOptions.PrettyPrinted)
+let data = try! JSONSerialization.data(withJSONObject: jsonDict, options: .prettyPrinted)
 
-mqttSession.publishData(data, onTopic: "/hey/wassap", withQoS: MQTTQoS.AtLeastOnce, shouldRetain: false) { (succeeded, error) -> Void in
+mqttSession.publish(data, in: "/hey/wassap", delivering: .atLeastOnce, retain: false) { (succeeded, error) -> Void in
   if succeeded {
     print("Published!")
   }
 }
-```
 
-## Conform to `MQTTSessionDelegate` to receive messages 
+```
+### Conform to `MQTTSessionDelegate` to receive messages 
 ```swift
 mqttSession.delegate = self
 ```
 ```swift
-func mqttSession(session: MQTTSession, didReceiveMessage message: NSData, onTopic topic: String) {
-	let stringData = NSString(data: message, encoding: NSUTF8StringEncoding) as! String
-	print("data received on topic \(topic) message \(stringData)")
+func mqttSession(session: MQTTSession, received message: Data, in topic: String) {
+	let string = String(data: message, encoding: .utf8)!
 }
 ```
 
-# Installation
+## Installation
 
-## CocoaPods
+### CocoaPods
 
 Install using [CocoaPods](http://cocoapods.org) by adding the following lines to your Podfile:
 
@@ -79,5 +81,5 @@ use_frameworks!
 pod 'SwiftMQTT'  
 ````
 
-# License
+## License
 MIT

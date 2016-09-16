@@ -8,15 +8,16 @@
 
 import Foundation
 
-public class MQTTPubMsg {
-    public let topic: String
-    public let message: NSData
-    public let retain: Bool
-    public let QoS: MQTTQoS
+open class MQTTPubMsg {
     
-    public init(topic: String, message: NSData, retain: Bool, QoS: MQTTQoS) {
+    open let topic: String
+    open let payload: Data
+    open let retain: Bool
+    open let QoS: MQTTQoS
+    
+    public init(topic: String, payload: Data, retain: Bool, QoS: MQTTQoS) {
         self.topic = topic
-        self.message = message
+        self.payload = payload
         self.retain = retain
         self.QoS = QoS
     }

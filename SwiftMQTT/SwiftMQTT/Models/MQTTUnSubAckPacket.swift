@@ -9,10 +9,11 @@
 import Foundation
 
 class MQTTUnSubAckPacket: MQTTPacket {
+    
     let messageID: UInt16
-    init(header: MQTTPacketFixedHeader, networkData: NSData) {
-        let buffer = UnsafePointer<UInt8>(networkData.bytes)
-        self.messageID = (UInt16(buffer[0]) * UInt16(256)) + UInt16(buffer[1])
+    
+    init(header: MQTTPacketFixedHeader, networkData: Data) {
+        messageID = (UInt16(networkData[0]) * UInt16(256)) + UInt16(networkData[1])
         super.init(header: header)
     }
 }

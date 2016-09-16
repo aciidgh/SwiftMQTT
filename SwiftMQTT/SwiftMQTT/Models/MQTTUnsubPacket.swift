@@ -16,19 +16,19 @@ class MQTTUnsubPacket: MQTTPacket {
     init(topics: [String], messageID: UInt16) {
         self.topics = topics
         self.messageID = messageID
-        super.init(header: MQTTPacketFixedHeader(packetType: .UnSubscribe, flags: 0x02))
+        super.init(header: MQTTPacketFixedHeader(packetType: .unSubscribe, flags: 0x02))
     }
     
-    override func networkPacket() -> NSData {
-        //Variable Header
-        let variableHeader = NSMutableData()
-        variableHeader.mqtt_appendUInt16(self.messageID)
+    override func networkPacket() -> Data {
+        // Variable Header
+        var variableHeader = Data()
+        variableHeader.mqtt_append(messageID)
         
-        //Payload
-        let payload = NSMutableData()
-        for topic in self.topics {
-            payload.mqtt_appendString(topic)
+        // Payload
+        var payload = Data()
+        for topic in topics {
+            payload.mqtt_append(topic)
         }
-        return self.finalPacket(variableHeader, payload: payload)
+        return finalPacket(variableHeader, payload: payload)
     }
 }
