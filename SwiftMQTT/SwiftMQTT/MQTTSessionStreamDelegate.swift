@@ -23,7 +23,7 @@ class MQTTSessionStream: NSObject, StreamDelegate {
     fileprivate var outputStream: OutputStream?
     
     internal var delegate: MQTTSessionStreamDelegate?
-    let queue = DispatchQueue(label: "com.careful.mqttSession", qos: .background, attributes: DispatchQueue.Attributes.concurrent, target: nil)
+    let queue = DispatchQueue(label: "com.app.mqttSession", qos: .background, attributes: DispatchQueue.Attributes.concurrent, target: nil)
     
     init(host: String, port: UInt16, ssl: Bool) {
         self.host = host
