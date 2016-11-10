@@ -23,6 +23,7 @@ class MQTTSessionStream: NSObject, StreamDelegate {
     fileprivate var outputStream: OutputStream?
     
     internal var delegate: MQTTSessionStreamDelegate?
+    let queue = DispatchQueue(label: "com.careful.mqttSession", qos: .background, attributes: DispatchQueue.Attributes.concurrent, target: nil)
     
     init(host: String, port: UInt16, ssl: Bool) {
         self.host = host
@@ -82,33 +83,49 @@ class MQTTSessionStream: NSObject, StreamDelegate {
     }
     
     fileprivate func receiveDataOnStream(_ stream: Stream) {
-        var headerByte = [UInt8](repeating: 0, count: 1)
-        guard let len = inputStream?.read(&headerByte, maxLength: 1), len > 0 else { return }
-        let header = MQTTPacketFixedHeader(networkByte: headerByte[0])
         
-        // Max Length is 2^28 = 268,435,455 (256 MB)
-        var multiplier = 1
-        var value = 0
-        var encodedByte: UInt8 = 0
-        repeat {
-            var readByte = [UInt8](repeating: 0, count: 1)
-            inputStream?.read(&readByte, maxLength: 1)
-            encodedByte = readByte[0]
-            value += (Int(encodedByte) & 127) * multiplier
-            multiplier *= 128
-            if multiplier > 128*128*128 {
-                return
+        self.queue.sync {
+            
+            var headerByte = [UInt8](repeating: 0, count: 1)
+            guard let len = self.inputStream?.read(&headerByte, maxLength: 1), len > 0 else { return }
+            let header = MQTTPacketFixedHeader(networkByte: headerByte[0])
+            
+            // Max Length is 2^28 = 268,435,455 (256 MB)
+            var multiplier = 1
+            var value = 0
+            var encodedByte: UInt8 = 0
+            repeat {
+                var readByte = [UInt8](repeating: 0, count: 1)
+                self.inputStream?.read(&readByte, maxLength: 1)
+                encodedByte = readByte[0]
+                value += (Int(encodedByte) & 127) * multiplier
+                multiplier *= 128
+                if multiplier > 128*128*128 {
+                    return
+                }
+            } while ((Int(encodedByte) & 128) != 0)
+            
+            let totalLength = value
+            var remainingLength = totalLength
+            var finalDataBuffer = Data()
+            
+            var responseData = Data()
+            if totalLength > 0 {
+                
+                while (remainingLength>0) {
+                    var buffer = [UInt8](repeating: 0, count: remainingLength)
+                    let readLength = self.inputStream?.read(&buffer, maxLength: buffer.count)
+                    responseData = Data(bytes: UnsafePointer<UInt8>(buffer), count: readLength!)
+                    if (readLength != nil) {
+                        remainingLength = remainingLength - readLength!
+                        finalDataBuffer.append(responseData)
+                    } else {
+                        remainingLength = 0
+                        print("error cannot read mqtt payload")
+                    }
+                }
             }
-        } while ((Int(encodedByte) & 128) != 0)
-        
-        let totalLength = value
-        
-        var responseData = Data()
-        if totalLength > 0 {
-            var buffer = [UInt8](repeating: 0, count: totalLength)
-            let readLength = inputStream?.read(&buffer, maxLength: buffer.count)
-            responseData = Data(bytes: UnsafePointer<UInt8>(buffer), count: readLength!)
+            self.delegate?.mqttReceived(finalDataBuffer, header: header, in: self)
         }
-        delegate?.mqttReceived(responseData, header: header, in: self)
     }
 }
