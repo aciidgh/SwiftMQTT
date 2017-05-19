@@ -9,7 +9,7 @@
 import Foundation
 
 protocol MQTTSessionStreamDelegate {
-    func mqttErrorOccurred(in stream: MQTTSessionStream)
+    func mqttErrorOccurred(in stream: MQTTSessionStream, error: Error?)
     func mqttReceived(_ data: Data, header: MQTTPacketFixedHeader, in stream: MQTTSessionStream)
 }
 
@@ -71,8 +71,9 @@ class MQTTSessionStream: NSObject, StreamDelegate {
                 receiveDataOnStream(aStream)
             }
         case Stream.Event.errorOccurred:
+			let error = aStream.streamError
             closeStreams()
-            delegate?.mqttErrorOccurred(in: self)
+            delegate?.mqttErrorOccurred(in: self, error: error)
         case Stream.Event.endEncountered:
             closeStreams()
         case Stream.Event.hasSpaceAvailable: break
@@ -83,7 +84,9 @@ class MQTTSessionStream: NSObject, StreamDelegate {
     
     fileprivate func receiveDataOnStream(_ stream: Stream) {
         var headerByte = [UInt8](repeating: 0, count: 1)
-        guard let len = inputStream?.read(&headerByte, maxLength: 1), len > 0 else { return }
+		guard let inputStream = self.inputStream else { return }
+        let len = inputStream.read(&headerByte, maxLength: 1)
+		guard len > 0 else { return }
         let header = MQTTPacketFixedHeader(networkByte: headerByte[0])
         
         // Max Length is 2^28 = 268,435,455 (256 MB)
@@ -91,9 +94,7 @@ class MQTTSessionStream: NSObject, StreamDelegate {
         var value = 0
         var encodedByte: UInt8 = 0
         repeat {
-            var readByte = [UInt8](repeating: 0, count: 1)
-            inputStream?.read(&readByte, maxLength: 1)
-            encodedByte = readByte[0]
+            inputStream.read(&encodedByte, maxLength: 1)
             value += (Int(encodedByte) & 127) * multiplier
             multiplier *= 128
             if multiplier > 128*128*128 {
@@ -103,12 +104,15 @@ class MQTTSessionStream: NSObject, StreamDelegate {
         
         let totalLength = value
         
-        var responseData = Data()
+        var responseData: Data
         if totalLength > 0 {
             var buffer = [UInt8](repeating: 0, count: totalLength)
-            let readLength = inputStream?.read(&buffer, maxLength: buffer.count)
-            responseData = Data(bytes: UnsafePointer<UInt8>(buffer), count: readLength!)
+            let readLength = inputStream.read(&buffer, maxLength: buffer.count)
+            responseData = Data(bytes: UnsafePointer<UInt8>(buffer), count: readLength)
         }
+		else {
+			responseData = Data()
+		}
         delegate?.mqttReceived(responseData, header: header, in: self)
     }
 }

@@ -58,13 +58,13 @@ class MQTTConnectPacket: MQTTPacket {
     
     override func networkPacket() -> Data {
         
-        var variableHeader = Data()
+        var variableHeader = Data(capacity: 1024)
         variableHeader.mqtt_append(protocolName)
         variableHeader.mqtt_append(protocolLevel)
         variableHeader.mqtt_append(encodedConnectFlags())
         variableHeader.mqtt_append(keepAlive)
         
-        var payload = Data()
+        var payload = Data(capacity: 1024)
         payload.mqtt_append(clientID)
         
         if let message = lastWillMessage {

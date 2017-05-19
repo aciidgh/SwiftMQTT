@@ -25,7 +25,7 @@ class MQTTUnsubPacket: MQTTPacket {
         variableHeader.mqtt_append(messageID)
         
         // Payload
-        var payload = Data()
+        var payload = Data(capacity: 1024)
         for topic in topics {
             payload.mqtt_append(topic)
         }

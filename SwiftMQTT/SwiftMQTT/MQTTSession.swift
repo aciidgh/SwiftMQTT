@@ -8,15 +8,29 @@
 
 import Foundation
 
+public struct MQTTMessage {
+	public let topic: String
+	public let payload: Data
+	public let id: UInt16
+	public let retain: Bool
+	
+	internal init(publishPacket: MQTTPublishPacket) {
+		self.topic = publishPacket.message.topic
+		self.payload = publishPacket.message.payload
+		self.id = publishPacket.messageID
+		self.retain = publishPacket.message.retain
+	}
+}
+
 public protocol MQTTSessionDelegate {
-    func mqttDidReceive(message data: Data, in topic: String, from session: MQTTSession)
-    func mqttDidDisconnect(session: MQTTSession)
-    func mqttSocketErrorOccurred(session: MQTTSession)
+    func mqttDidReceive(message: MQTTMessage, from session: MQTTSession)
+    func mqttDidDisconnect(session: MQTTSession, error: Error?)
+    func mqttSocketErrorOccurred(session: MQTTSession, error: Error?)
 }
 
 public typealias MQTTSessionCompletionBlock = (_ succeeded: Bool, _ error: Error) -> Void
 
-open class MQTTSession: MQTTSessionStreamDelegate {
+open class MQTTSession {
     
     open let cleanSession: Bool
     open let keepAlive: UInt16
@@ -27,7 +41,8 @@ open class MQTTSession: MQTTSessionStreamDelegate {
     open var lastWillMessage: MQTTPubMsg?
 
     open var delegate: MQTTSessionDelegate?
-    
+	
+	fileprivate var backgroundQueue: DispatchQueue?
     fileprivate var keepAliveTimer: Timer!
     fileprivate var connectionCompletionBlock: MQTTSessionCompletionBlock?
     fileprivate var messagesCompletionBlocks = [UInt16: MQTTSessionCompletionBlock]()
@@ -81,6 +96,15 @@ open class MQTTSession: MQTTSessionStreamDelegate {
             completion?(false, MQTTSessionError.socketError)
         }
     }
+	
+	open func connect(queueName: String, completion: MQTTSessionCompletionBlock?) {
+		backgroundQueue = DispatchQueue(label: queueName, qos: .background, target: nil)
+		backgroundQueue?.async { [weak self] in
+			let currentRunLoop = RunLoop.current
+			self?.connect(completion: completion)
+			currentRunLoop.run()
+		}
+	}
     
     open func connect(completion: MQTTSessionCompletionBlock?) {
         // Open Stream
@@ -107,13 +131,14 @@ open class MQTTSession: MQTTSessionStreamDelegate {
     open func disconnect() {
         let disconnectPacket = MQTTDisconnectPacket()
         send(disconnectPacket)
-        cleanupDisconnection()
+        cleanupDisconnection(nil)
     }
     
-    fileprivate func cleanupDisconnection() {
+    fileprivate func cleanupDisconnection(_ error: Error?) {
         stream.closeStreams()
         keepAliveTimer?.invalidate()
-        delegate?.mqttDidDisconnect(session: self)
+		backgroundQueue = nil
+        delegate?.mqttDidDisconnect(session: self, error: error)
     }
     
     @discardableResult
@@ -121,8 +146,7 @@ open class MQTTSession: MQTTSessionStreamDelegate {
         let writtenLength = stream.send(packet)
         let didWriteSuccessfully = writtenLength != -1
         if !didWriteSuccessfully {
-            delegate?.mqttSocketErrorOccurred(session: self)
-            cleanupDisconnection()
+            cleanupDisconnection(NSError(domain: "MQTTSession", code: 0, userInfo: nil))
         }
         return didWriteSuccessfully
     }
@@ -146,9 +170,8 @@ open class MQTTSession: MQTTSessionStreamDelegate {
         case .publish:
             let publishPacket = MQTTPublishPacket(header: header, networkData: networkData)
             sendPubAck(for: publishPacket.messageID)
-            let payload = publishPacket.message.payload
-            let topic = publishPacket.message.topic
-            delegate?.mqttDidReceive(message: payload, in: topic, from: self)
+			let message = MQTTMessage(publishPacket: publishPacket)
+            delegate?.mqttDidReceive(message: message, from: self)
         case .pingResp:
             _ = MQTTPingResp(header: header)
         default:
@@ -162,8 +185,7 @@ open class MQTTSession: MQTTSessionStreamDelegate {
     }
     
     fileprivate func callSuccessCompletionBlock(for messageId: UInt16) {
-        let completionBlock = messagesCompletionBlocks[messageId]
-        messagesCompletionBlocks[messageId] = nil
+        let completionBlock = messagesCompletionBlocks.removeValue(forKey: messageId)
         completionBlock?(true, MQTTSessionError.none)
     }
     
@@ -179,15 +201,15 @@ open class MQTTSession: MQTTSessionStreamDelegate {
         MessageIDHolder.messageID += 1
         return MessageIDHolder.messageID
     }
-    
-    // MARK: - MQTTSessionStreamDelegate
+}
 
+extension MQTTSession: MQTTSessionStreamDelegate {
     func mqttReceived(_ data: Data, header: MQTTPacketFixedHeader, in stream: MQTTSessionStream) {
         parse(data, header: header)
     }
     
-    func mqttErrorOccurred(in stream: MQTTSessionStream) {
-        delegate?.mqttSocketErrorOccurred(session: self)
+    func mqttErrorOccurred(in stream: MQTTSessionStream, error: Error?) {
+        delegate?.mqttSocketErrorOccurred(session: self, error: error)
     }
         
 }

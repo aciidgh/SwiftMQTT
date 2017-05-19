@@ -30,7 +30,7 @@ class MQTTPublishPacket: MQTTPacket {
     
     override func networkPacket() -> Data {
         // Variable Header
-        var variableHeader = Data()
+        var variableHeader = Data(capacity: 1024)
         variableHeader.mqtt_append(message.topic)
         if message.QoS != .atMostOnce {
             variableHeader.mqtt_append(messageID)
