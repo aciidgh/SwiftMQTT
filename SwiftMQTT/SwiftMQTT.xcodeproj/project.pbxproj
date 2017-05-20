@@ -27,6 +27,7 @@
 		5471A8E01BF22E9E0079610F /* MQTTSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8DF1BF22E9E0079610F /* MQTTSession.swift */; };
 		5471A8E41BF231900079610F /* MQTTExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8E31BF231900079610F /* MQTTExtensions.swift */; };
 		55D218471ED094E200F0E2E6 /* MQTTSessionStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D218461ED094E200F0E2E6 /* MQTTSessionStream.swift */; };
+		55D218491ED09A3400F0E2E6 /* MQTTBatchReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D218481ED09A3400F0E2E6 /* MQTTBatchReceiver.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +64,7 @@
 		5471A8DF1BF22E9E0079610F /* MQTTSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTSession.swift; sourceTree = "<group>"; };
 		5471A8E31BF231900079610F /* MQTTExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTExtensions.swift; sourceTree = "<group>"; };
 		55D218461ED094E200F0E2E6 /* MQTTSessionStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTSessionStream.swift; sourceTree = "<group>"; };
+		55D218481ED09A3400F0E2E6 /* MQTTBatchReceiver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MQTTBatchReceiver.swift; path = SwiftMQTT/MQTTBatchReceiver.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,6 +132,7 @@
 				5463BA3C1BF4B9EF00EDE516 /* Models */,
 				5471A8DF1BF22E9E0079610F /* MQTTSession.swift */,
 				55D218461ED094E200F0E2E6 /* MQTTSessionStream.swift */,
+				55D218481ED09A3400F0E2E6 /* MQTTBatchReceiver.swift */,
 				5471A8E31BF231900079610F /* MQTTExtensions.swift */,
 				5471A8991BF228900079610F /* SwiftMQTT.h */,
 				5471A89B1BF228900079610F /* Info.plist */,
@@ -262,6 +265,7 @@
 				5463BA4E1BF4BABB00EDE516 /* MQTTConnAckPacket.swift in Sources */,
 				5463BA501BF4BACE00EDE516 /* MQTTSubAckPacket.swift in Sources */,
 				5463BA461BF4BA7600EDE516 /* MQTTSubPacket.swift in Sources */,
+				55D218491ED09A3400F0E2E6 /* MQTTBatchReceiver.swift in Sources */,
 				5463BA541BF4BAF000EDE516 /* MQTTPubAck.swift in Sources */,
 				5463BA421BF4BA4200EDE516 /* MQTTPubMsg.swift in Sources */,
 				5463BA4A1BF4BA9B00EDE516 /* MQTTUnsubPacket.swift in Sources */,

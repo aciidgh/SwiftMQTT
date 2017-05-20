@@ -11,11 +11,12 @@ OCI Changes:
     Changed name of file to match primary class
     Propagate error object to delegate
     Optimizations to receiveDataOnStream
+    Make MQTTSessionStreamDelegate var weak
 */
 
 import Foundation
 
-protocol MQTTSessionStreamDelegate {
+protocol MQTTSessionStreamDelegate: class {
     func mqttErrorOccurred(in stream: MQTTSessionStream, error: Error?)
     func mqttReceived(_ data: Data, header: MQTTPacketFixedHeader, in stream: MQTTSessionStream)
 }
@@ -29,7 +30,7 @@ class MQTTSessionStream: NSObject, StreamDelegate {
     fileprivate var inputStream: InputStream?
     fileprivate var outputStream: OutputStream?
     
-    internal var delegate: MQTTSessionStreamDelegate?
+    internal weak var delegate: MQTTSessionStreamDelegate?
     
     init(host: String, port: UInt16, ssl: Bool) {
         self.host = host

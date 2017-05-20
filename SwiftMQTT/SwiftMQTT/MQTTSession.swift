@@ -12,6 +12,9 @@ OCI Changes:
     Propagate error objects to delegate
     Single delegate call on errored disconnect
     Added connect on background queue method
+    Optimization in callSuccessCompletionBlock
+    Move MQTTSessionStreamDelegate adherence to extension
+    Make MQTTSessionDelegate var weak
 */
 
 import Foundation
@@ -34,7 +37,7 @@ public struct MQTTMessage {
     }
 }
 
-public protocol MQTTSessionDelegate {
+public protocol MQTTSessionDelegate: class {
     func mqttDidReceive(message: MQTTMessage, from session: MQTTSession)
     func mqttDidDisconnect(session: MQTTSession, error: Error?)
     func mqttSocketErrorOccurred(session: MQTTSession, error: Error?)
@@ -52,7 +55,7 @@ open class MQTTSession {
     open var password: String?
     open var lastWillMessage: MQTTPubMsg?
 
-    open var delegate: MQTTSessionDelegate?
+    open weak var delegate: MQTTSessionDelegate?
 	
 	fileprivate var backgroundQueue: DispatchQueue?
     fileprivate var keepAliveTimer: Timer!
