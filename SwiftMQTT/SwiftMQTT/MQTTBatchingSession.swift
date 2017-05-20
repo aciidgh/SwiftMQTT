@@ -14,14 +14,20 @@ public protocol MQTTBatchingSessionDelegate: class {
     func mqttErrorOccurred(session: MQTTBatchingSession, error: Error?)
 }
 
+public struct MQTTCredentials {
+    // username, password, useSSL, certs
+}
+
 public struct MQTTConnectParams {
+    public init(clientID: String) {
+        self.clientID = clientID
+    }
+    public var clientID: String
     public var host: String = "localhost"
     public var port: UInt16 = 1883
-    public var clientID: String = ""
     public var cleanSession: Bool = true
     public var keepAlive: UInt16 = 15
     public var useSSL: Bool = false
-    public var queueName: String
     public var retryCount: Int = 3
     public var retryTimeInterval: TimeInterval = 1.0
 }
@@ -35,10 +41,12 @@ public extension MQTTSession {
 /*
     TODO: reconnects with retries
     TODO: batch sends
+    TODO: encapsulate credentials
 */
 
 public class MQTTBatchingSession: MQTTBroker {
 	fileprivate var sessionQueue: DispatchQueue
+	fileprivate var issueQueue: DispatchQueue
     fileprivate let connectParams: MQTTConnectParams
     fileprivate let session: MQTTSession
     fileprivate let batchPredicate: ([MQTTMessage])->Bool
@@ -47,7 +55,8 @@ public class MQTTBatchingSession: MQTTBroker {
     
     public init(connectParams: MQTTConnectParams, batchPredicate: @escaping ([MQTTMessage])->Bool) {
         self.batchPredicate = batchPredicate
-        self.sessionQueue = DispatchQueue(label: connectParams.queueName + ".session", qos: .background, target: nil)
+        self.sessionQueue = DispatchQueue(label: "com.SwiftMQTT.session", qos: .background, target: nil)
+        self.issueQueue = DispatchQueue(label: "com.SwiftMQTT.issue", qos: .background, target: nil)
         self.connectParams = connectParams
         self.session = MQTTSession(connectParams: connectParams)
         self.session.delegate = self
@@ -81,14 +90,20 @@ public class MQTTBatchingSession: MQTTBroker {
 extension MQTTBatchingSession: MQTTSessionDelegate {
 
     public func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
-        self.delegate?.mqttDidReceive(messages: [message], from: self)
+		issueQueue.async {
+			self.delegate?.mqttDidReceive(messages: [message], from: self)
+		}
     }
 
     public func mqttDidDisconnect(session: MQTTSession, error: Error?) {
-        self.delegate?.mqttConnectionFailed(session: self, error: error)
+		issueQueue.async {
+			self.delegate?.mqttConnectionFailed(session: self, error: error)
+		}
     }
 
     public func mqttSocketErrorOccurred(session: MQTTSession, error: Error?) {
-        self.delegate?.mqttErrorOccurred(session: self, error: error)
+		issueQueue.async {
+			self.delegate?.mqttErrorOccurred(session: self, error: error)
+		}
     }
 }

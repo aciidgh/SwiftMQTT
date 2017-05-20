@@ -90,6 +90,7 @@ open class MQTTSession: MQTTBroker {
         stream.delegate = self
         stream.createStreamConnection()
         
+        // TODO: main thread?
         keepAliveTimer = Timer(timeInterval: Double(keepAlive), target: self, selector: #selector(MQTTSession.keepAliveTimerFired), userInfo: nil, repeats: true)
         RunLoop.main.add(keepAliveTimer, forMode: .defaultRunLoopMode)
         
