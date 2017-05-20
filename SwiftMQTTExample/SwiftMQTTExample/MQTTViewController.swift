@@ -87,10 +87,6 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
         appendStringToTextView("data received on topic \(message.topic) message \(message.stringRep ?? "<>")")
     }
     
-    func mqttSocketErrorOccurred(session: MQTTSession, error: Error?) {
-        appendStringToTextView("Socket Error")
-    }
-    
     func mqttDidDisconnect(session: MQTTSession, error: Error?) {
         appendStringToTextView("Session Disconnected.")
     }

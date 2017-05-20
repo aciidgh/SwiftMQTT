@@ -13,6 +13,7 @@ OCI Changes:
     Optimizations to receiveDataOnStream
     Make MQTTSessionStreamDelegate var weak
     Bug Fix in send for disconnected state
+    MQTTSessionStream is now not recycled (RAII design pattern)
 */
 
 import Foundation
@@ -24,23 +25,18 @@ protocol MQTTSessionStreamDelegate: class {
 
 class MQTTSessionStream: NSObject, StreamDelegate {
     
-    internal let host: String
-    internal let port: UInt16
-    internal let ssl: Bool
+    private let inputStream: InputStream?
+    private let outputStream: OutputStream?
+    private weak var delegate: MQTTSessionStreamDelegate?
     
-    fileprivate var inputStream: InputStream?
-    fileprivate var outputStream: OutputStream?
-    
-    internal weak var delegate: MQTTSessionStreamDelegate?
-    
-    init(host: String, port: UInt16, ssl: Bool) {
-        self.host = host
-        self.port = port
-        self.ssl = ssl
-    }
-    
-    func createStreamConnection() {
+    init(host: String, port: UInt16, ssl: Bool, delegate: MQTTSessionStreamDelegate?) {
+        var inputStream: InputStream?
+        var outputStream: OutputStream?
         Stream.getStreamsToHost(withName: host, port: Int(port), inputStream: &inputStream, outputStream: &outputStream)
+        self.delegate = delegate
+        self.inputStream = inputStream
+        self.outputStream = outputStream
+        super.init()
         inputStream?.delegate = self
         outputStream?.delegate = self
         inputStream?.schedule(in: .current, forMode: .defaultRunLoopMode)
@@ -54,7 +50,7 @@ class MQTTSessionStream: NSObject, StreamDelegate {
         }
     }
     
-    func closeStreams() {
+    deinit {
         inputStream?.close()
         inputStream?.remove(from: .current, forMode: .defaultRunLoopMode)
         outputStream?.close()
@@ -73,21 +69,17 @@ class MQTTSessionStream: NSObject, StreamDelegate {
     
     internal func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
         switch eventCode {
-        case Stream.Event(): break
         case Stream.Event.openCompleted: break
         case Stream.Event.hasBytesAvailable:
             if aStream == inputStream {
                 receiveDataOnStream(aStream)
             }
         case Stream.Event.errorOccurred:
-			let error = aStream.streamError
-            closeStreams()
-            delegate?.mqttErrorOccurred(in: self, error: error)
+            delegate?.mqttErrorOccurred(in: self, error: aStream.streamError)
         case Stream.Event.endEncountered:
-            closeStreams()
+            delegate?.mqttErrorOccurred(in: self, error: aStream.streamError)
         case Stream.Event.hasSpaceAvailable: break
-        default:
-            print("unknown")
+        default: break
         }
     }
     
@@ -117,7 +109,7 @@ class MQTTSessionStream: NSObject, StreamDelegate {
         if totalLength > 0 {
             var buffer = [UInt8](repeating: 0, count: totalLength)
             // TODO: Do we need to loop until maxLength is met?
-            // TODO: Should we reycle previous responseData buffer?
+            // TODO: Should we recycle previous responseData buffer?
             let readLength = inputStream.read(&buffer, maxLength: buffer.count)
             responseData = Data(bytes: UnsafePointer<UInt8>(buffer), count: readLength)
         }

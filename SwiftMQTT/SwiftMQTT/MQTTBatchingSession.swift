@@ -11,11 +11,10 @@ import Foundation
 public protocol MQTTBatchingSessionDelegate: class {
     func mqttDidReceive(messages: [MQTTMessage], from session: MQTTBatchingSession)
     func mqttConnectionFailed(session: MQTTBatchingSession, error: Error?)
-    func mqttErrorOccurred(session: MQTTBatchingSession, error: Error?)
 }
 
 public struct MQTTCredentials {
-    // username, password, useSSL, certs
+    // username, password, useSSL, certs, lastWill
 }
 
 public struct MQTTConnectParams {
@@ -98,12 +97,6 @@ extension MQTTBatchingSession: MQTTSessionDelegate {
     public func mqttDidDisconnect(session: MQTTSession, error: Error?) {
 		issueQueue.async {
 			self.delegate?.mqttConnectionFailed(session: self, error: error)
-		}
-    }
-
-    public func mqttSocketErrorOccurred(session: MQTTSession, error: Error?) {
-		issueQueue.async {
-			self.delegate?.mqttErrorOccurred(session: self, error: error)
 		}
     }
 }

@@ -16,6 +16,7 @@ OCI Changes:
     Make MQTTSessionDelegate var weak
     Adhere to MQTTBroker
     Make deinit force disconnect
+    MQTTSessionStream is now not recycled (RAII design pattern)
 */
 
 import Foundation
@@ -23,12 +24,15 @@ import Foundation
 public protocol MQTTSessionDelegate: class {
     func mqttDidReceive(message: MQTTMessage, from session: MQTTSession)
     func mqttDidDisconnect(session: MQTTSession, error: Error?)
-    func mqttSocketErrorOccurred(session: MQTTSession, error: Error?)
 }
 
 public typealias MQTTSessionCompletionBlock = (_ succeeded: Bool, _ error: Error?) -> Void
 
 open class MQTTSession: MQTTBroker {
+    
+    let host: String
+    let port: UInt16
+    let useSSL: Bool
     
     open let cleanSession: Bool
     open let keepAlive: UInt16
@@ -43,10 +47,13 @@ open class MQTTSession: MQTTBroker {
     fileprivate var keepAliveTimer: Timer!
     fileprivate var connectionCompletionBlock: MQTTSessionCompletionBlock?
     fileprivate var messagesCompletionBlocks = [UInt16: MQTTSessionCompletionBlock]()
-    fileprivate var stream: MQTTSessionStream
+    
+    fileprivate var stream: MQTTSessionStream?
     
     public init(host: String, port: UInt16, clientID: String, cleanSession: Bool, keepAlive: UInt16, useSSL: Bool = false) {
-        stream = MQTTSessionStream(host: host, port: port, ssl: useSSL)
+        self.host = host
+        self.port = port
+        self.useSSL = useSSL
         self.clientID = clientID
         self.cleanSession = cleanSession
         self.keepAlive = keepAlive
@@ -92,8 +99,7 @@ open class MQTTSession: MQTTBroker {
     
     open func connect(completion: MQTTSessionCompletionBlock?) {
         // Open Stream
-        stream.delegate = self
-        stream.createStreamConnection()
+        stream = MQTTSessionStream(host: host, port: port, ssl: useSSL, delegate: self)
         
         keepAliveTimer = Timer(timeInterval: TimeInterval(keepAlive), target: self, selector: #selector(MQTTSession.keepAliveTimerFired), userInfo: nil, repeats: true)
         RunLoop.main.add(keepAliveTimer, forMode: .defaultRunLoopMode)
@@ -119,19 +125,22 @@ open class MQTTSession: MQTTBroker {
     }
     
     fileprivate func cleanupDisconnection(_ error: Error?) {
-        stream.closeStreams()
+        stream = nil
         keepAliveTimer?.invalidate()
         delegate?.mqttDidDisconnect(session: self, error: error)
     }
     
     @discardableResult
     fileprivate func send(_ packet: MQTTPacket) -> Bool {
-        let writtenLength = stream.send(packet)
-        let didWriteSuccessfully = writtenLength != -1
-        if !didWriteSuccessfully {
-            cleanupDisconnection(NSError(domain: "MQTTSession", code: 0, userInfo: nil))
+        if let stream = stream {
+            let writtenLength = stream.send(packet)
+            let didWriteSuccessfully = writtenLength != -1
+            if !didWriteSuccessfully {
+                cleanupDisconnection(NSError(domain: "MQTTSession", code: 0, userInfo: nil))
+            }
+            return didWriteSuccessfully
         }
-        return didWriteSuccessfully
+        return false
     }
     
     fileprivate func parse(_ networkData: Data, header: MQTTPacketFixedHeader) {
@@ -192,6 +201,6 @@ extension MQTTSession: MQTTSessionStreamDelegate {
     }
     
     func mqttErrorOccurred(in stream: MQTTSessionStream, error: Error?) {
-        delegate?.mqttSocketErrorOccurred(session: self, error: error)
+        cleanupDisconnection(error)
     }
 }

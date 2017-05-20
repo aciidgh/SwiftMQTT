@@ -126,9 +126,5 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
     func mqttDidDisconnect(session: MQTTSession, error: Error?) {
         print("did disconnect")
     }
-    
-    func mqttSocketErrorOccurred(session: MQTTSession, error: Error?) {
-        print("socket error")
-    }
 
 }
