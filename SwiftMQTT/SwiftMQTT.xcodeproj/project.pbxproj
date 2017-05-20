@@ -21,12 +21,12 @@
 		5463BA541BF4BAF000EDE516 /* MQTTPubAck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5463BA531BF4BAF000EDE516 /* MQTTPubAck.swift */; };
 		5463BA561BF4BAFE00EDE516 /* MQTTPingResp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5463BA551BF4BAFE00EDE516 /* MQTTPingResp.swift */; };
 		5463BA581BF4BB1000EDE516 /* MQTTPingPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5463BA571BF4BB1000EDE516 /* MQTTPingPacket.swift */; };
-		5463BA5A1BF4BBDA00EDE516 /* MQTTSessionStreamDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5463BA591BF4BBDA00EDE516 /* MQTTSessionStreamDelegate.swift */; };
 		5471A89A1BF228900079610F /* SwiftMQTT.h in Headers */ = {isa = PBXBuildFile; fileRef = 5471A8991BF228900079610F /* SwiftMQTT.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5471A8A11BF228900079610F /* SwiftMQTT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5471A8961BF228900079610F /* SwiftMQTT.framework */; };
 		5471A8A61BF228900079610F /* SwiftMQTTTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8A51BF228900079610F /* SwiftMQTTTests.swift */; };
 		5471A8E01BF22E9E0079610F /* MQTTSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8DF1BF22E9E0079610F /* MQTTSession.swift */; };
 		5471A8E41BF231900079610F /* MQTTExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8E31BF231900079610F /* MQTTExtensions.swift */; };
+		55D218471ED094E200F0E2E6 /* MQTTSessionStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D218461ED094E200F0E2E6 /* MQTTSessionStream.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,7 +54,6 @@
 		5463BA531BF4BAF000EDE516 /* MQTTPubAck.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTPubAck.swift; sourceTree = "<group>"; };
 		5463BA551BF4BAFE00EDE516 /* MQTTPingResp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTPingResp.swift; sourceTree = "<group>"; };
 		5463BA571BF4BB1000EDE516 /* MQTTPingPacket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTPingPacket.swift; sourceTree = "<group>"; };
-		5463BA591BF4BBDA00EDE516 /* MQTTSessionStreamDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTSessionStreamDelegate.swift; sourceTree = "<group>"; };
 		5471A8961BF228900079610F /* SwiftMQTT.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftMQTT.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5471A8991BF228900079610F /* SwiftMQTT.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwiftMQTT.h; sourceTree = "<group>"; };
 		5471A89B1BF228900079610F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -63,6 +62,7 @@
 		5471A8A71BF228900079610F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5471A8DF1BF22E9E0079610F /* MQTTSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTSession.swift; sourceTree = "<group>"; };
 		5471A8E31BF231900079610F /* MQTTExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTExtensions.swift; sourceTree = "<group>"; };
+		55D218461ED094E200F0E2E6 /* MQTTSessionStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTSessionStream.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -129,10 +129,10 @@
 			children = (
 				5463BA3C1BF4B9EF00EDE516 /* Models */,
 				5471A8DF1BF22E9E0079610F /* MQTTSession.swift */,
+				55D218461ED094E200F0E2E6 /* MQTTSessionStream.swift */,
 				5471A8E31BF231900079610F /* MQTTExtensions.swift */,
 				5471A8991BF228900079610F /* SwiftMQTT.h */,
 				5471A89B1BF228900079610F /* Info.plist */,
-				5463BA591BF4BBDA00EDE516 /* MQTTSessionStreamDelegate.swift */,
 			);
 			path = SwiftMQTT;
 			sourceTree = "<group>";
@@ -265,12 +265,12 @@
 				5463BA541BF4BAF000EDE516 /* MQTTPubAck.swift in Sources */,
 				5463BA421BF4BA4200EDE516 /* MQTTPubMsg.swift in Sources */,
 				5463BA4A1BF4BA9B00EDE516 /* MQTTUnsubPacket.swift in Sources */,
+				55D218471ED094E200F0E2E6 /* MQTTSessionStream.swift in Sources */,
 				5463BA481BF4BA8500EDE516 /* MQTTDisconnectPacket.swift in Sources */,
 				5463BA581BF4BB1000EDE516 /* MQTTPingPacket.swift in Sources */,
 				5471A8E41BF231900079610F /* MQTTExtensions.swift in Sources */,
 				5463BA3E1BF4B9FD00EDE516 /* MQTTPacket.swift in Sources */,
 				5463BA4C1BF4BAAA00EDE516 /* MQTTPublishPacket.swift in Sources */,
-				5463BA5A1BF4BBDA00EDE516 /* MQTTSessionStreamDelegate.swift in Sources */,
 				5463BA561BF4BAFE00EDE516 /* MQTTPingResp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

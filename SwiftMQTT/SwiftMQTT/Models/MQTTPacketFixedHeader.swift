@@ -6,6 +6,11 @@
 //  Copyright © 2015 Ankit. All rights reserved.
 //
 
+/*
+OCI Changes:
+    Changed to struct (no-polymorphic, no-shared, immutable)
+*/
+
 import Foundation
 
 struct MQTTPacketFixedHeader {

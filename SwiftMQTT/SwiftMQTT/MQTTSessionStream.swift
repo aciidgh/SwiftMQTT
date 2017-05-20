@@ -1,10 +1,17 @@
 //
-//  MQTTSessionStreamDelegate.swift
+//  MQTTSessionStream.swift
 //  SwiftMQTT
 //
 //  Created by Ankit Aggarwal on 12/11/15.
 //  Copyright © 2015 Ankit. All rights reserved.
 //
+
+/*
+OCI Changes:
+    Changed name of file to match primary class
+    Propagate error object to delegate
+    Optimizations to receiveDataOnStream
+*/
 
 import Foundation
 

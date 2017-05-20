@@ -6,6 +6,14 @@
 //  Copyright © 2015 Ankit. All rights reserved.
 //
 
+/*
+OCI Changes:
+    Encapsulate mqttDidReceive params into MQTTMessage struct
+    Propagate error objects to delegate
+    Single delegate call on errored disconnect
+    Added connect on background queue method
+*/
+
 import Foundation
 
 public struct MQTTMessage {
@@ -20,6 +28,10 @@ public struct MQTTMessage {
 		self.id = publishPacket.messageID
 		self.retain = publishPacket.message.retain
 	}
+    
+    public var stringRep: String? {
+        return String(data: self.payload, encoding: .utf8)
+    }
 }
 
 public protocol MQTTSessionDelegate {
@@ -211,5 +223,4 @@ extension MQTTSession: MQTTSessionStreamDelegate {
     func mqttErrorOccurred(in stream: MQTTSessionStream, error: Error?) {
         delegate?.mqttSocketErrorOccurred(session: self, error: error)
     }
-        
 }
