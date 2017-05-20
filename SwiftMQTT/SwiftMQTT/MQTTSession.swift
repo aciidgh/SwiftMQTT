@@ -11,11 +11,10 @@ OCI Changes:
     Encapsulate mqttDidReceive params into MQTTMessage struct
     Propagate error objects to delegate
     Single delegate call on errored disconnect
-    Added connect on background queue method
     Optimization in callSuccessCompletionBlock
     Move MQTTSessionStreamDelegate adherence to extension
     Make MQTTSessionDelegate var weak
-    Optional completion blocks do not require explicit nil argument
+    Adhere to MQTTBroker
 */
 
 import Foundation
@@ -28,7 +27,7 @@ public protocol MQTTSessionDelegate: class {
 
 public typealias MQTTSessionCompletionBlock = (_ succeeded: Bool, _ error: Error) -> Void
 
-open class MQTTSession {
+open class MQTTSession: MQTTBroker {
     
     open let cleanSession: Bool
     open let keepAlive: UInt16
@@ -40,7 +39,6 @@ open class MQTTSession {
 
     open weak var delegate: MQTTSessionDelegate?
 	
-	fileprivate var backgroundQueue: DispatchQueue?
     fileprivate var keepAliveTimer: Timer!
     fileprivate var connectionCompletionBlock: MQTTSessionCompletionBlock?
     fileprivate var messagesCompletionBlocks = [UInt16: MQTTSessionCompletionBlock]()
@@ -67,11 +65,7 @@ open class MQTTSession {
         }
     }
     
-    open func subscribe(to topic: String, delivering qos: MQTTQoS, completion: MQTTSessionCompletionBlock?) {
-        subscribe(to: [topic: qos], completion: completion)
-    }
-    
-    open func subscribe(to topics: [String: MQTTQoS], completion: MQTTSessionCompletionBlock? = nil) {
+    open func subscribe(to topics: [String: MQTTQoS], completion: MQTTSessionCompletionBlock?) {
         let msgID = nextMessageID()
         let subscribePacket = MQTTSubPacket(topics: topics, messageID: msgID)
         if send(subscribePacket) {
@@ -81,11 +75,7 @@ open class MQTTSession {
         }
     }
     
-    open func unSubscribe(from topic: String, completion: MQTTSessionCompletionBlock? = nil) {
-        unSubscribe(from: [topic], completion: completion)
-    }
-    
-    open func unSubscribe(from topics: [String], completion: MQTTSessionCompletionBlock? = nil) {
+    open func unSubscribe(from topics: [String], completion: MQTTSessionCompletionBlock?) {
         let msgID = nextMessageID()
         let unSubPacket = MQTTUnsubPacket(topics: topics, messageID: msgID)
         if send(unSubPacket) {
@@ -94,17 +84,8 @@ open class MQTTSession {
             completion?(false, MQTTSessionError.socketError)
         }
     }
-	
-	open func connect(queueName: String, completion: MQTTSessionCompletionBlock? = nil) {
-		backgroundQueue = DispatchQueue(label: queueName, qos: .background, target: nil)
-		backgroundQueue?.async { [weak self] in
-			let currentRunLoop = RunLoop.current
-			self?.connect(completion: completion)
-			currentRunLoop.run()
-		}
-	}
     
-    open func connect(completion: MQTTSessionCompletionBlock? = nil) {
+    open func connect(completion: MQTTSessionCompletionBlock?) {
         // Open Stream
         stream.delegate = self
         stream.createStreamConnection()
@@ -135,7 +116,6 @@ open class MQTTSession {
     fileprivate func cleanupDisconnection(_ error: Error?) {
         stream.closeStreams()
         keepAliveTimer?.invalidate()
-		backgroundQueue = nil
         delegate?.mqttDidDisconnect(session: self, error: error)
     }
     
