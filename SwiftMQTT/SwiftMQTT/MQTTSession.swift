@@ -15,27 +15,10 @@ OCI Changes:
     Optimization in callSuccessCompletionBlock
     Move MQTTSessionStreamDelegate adherence to extension
     Make MQTTSessionDelegate var weak
+    Optional completion blocks do not require explicit nil argument
 */
 
 import Foundation
-
-public struct MQTTMessage {
-	public let topic: String
-	public let payload: Data
-	public let id: UInt16
-	public let retain: Bool
-	
-	internal init(publishPacket: MQTTPublishPacket) {
-		self.topic = publishPacket.message.topic
-		self.payload = publishPacket.message.payload
-		self.id = publishPacket.messageID
-		self.retain = publishPacket.message.retain
-	}
-    
-    public var stringRep: String? {
-        return String(data: self.payload, encoding: .utf8)
-    }
-}
 
 public protocol MQTTSessionDelegate: class {
     func mqttDidReceive(message: MQTTMessage, from session: MQTTSession)
@@ -88,7 +71,7 @@ open class MQTTSession {
         subscribe(to: [topic: qos], completion: completion)
     }
     
-    open func subscribe(to topics: [String: MQTTQoS], completion: MQTTSessionCompletionBlock?) {
+    open func subscribe(to topics: [String: MQTTQoS], completion: MQTTSessionCompletionBlock? = nil) {
         let msgID = nextMessageID()
         let subscribePacket = MQTTSubPacket(topics: topics, messageID: msgID)
         if send(subscribePacket) {
@@ -98,11 +81,11 @@ open class MQTTSession {
         }
     }
     
-    open func unSubscribe(from topic: String, completion: MQTTSessionCompletionBlock?) {
+    open func unSubscribe(from topic: String, completion: MQTTSessionCompletionBlock? = nil) {
         unSubscribe(from: [topic], completion: completion)
     }
     
-    open func unSubscribe(from topics: [String], completion: MQTTSessionCompletionBlock?) {
+    open func unSubscribe(from topics: [String], completion: MQTTSessionCompletionBlock? = nil) {
         let msgID = nextMessageID()
         let unSubPacket = MQTTUnsubPacket(topics: topics, messageID: msgID)
         if send(unSubPacket) {
@@ -112,7 +95,7 @@ open class MQTTSession {
         }
     }
 	
-	open func connect(queueName: String, completion: MQTTSessionCompletionBlock?) {
+	open func connect(queueName: String, completion: MQTTSessionCompletionBlock? = nil) {
 		backgroundQueue = DispatchQueue(label: queueName, qos: .background, target: nil)
 		backgroundQueue?.async { [weak self] in
 			let currentRunLoop = RunLoop.current
@@ -121,7 +104,7 @@ open class MQTTSession {
 		}
 	}
     
-    open func connect(completion: MQTTSessionCompletionBlock?) {
+    open func connect(completion: MQTTSessionCompletionBlock? = nil) {
         // Open Stream
         stream.delegate = self
         stream.createStreamConnection()
