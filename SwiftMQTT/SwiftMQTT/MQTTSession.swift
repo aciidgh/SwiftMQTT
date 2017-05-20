@@ -15,6 +15,7 @@ OCI Changes:
     Move MQTTSessionStreamDelegate adherence to extension
     Make MQTTSessionDelegate var weak
     Adhere to MQTTBroker
+    Make deinit force disconnect
 */
 
 import Foundation
@@ -25,7 +26,7 @@ public protocol MQTTSessionDelegate: class {
     func mqttSocketErrorOccurred(session: MQTTSession, error: Error?)
 }
 
-public typealias MQTTSessionCompletionBlock = (_ succeeded: Bool, _ error: Error) -> Void
+public typealias MQTTSessionCompletionBlock = (_ succeeded: Bool, _ error: Error?) -> Void
 
 open class MQTTSession: MQTTBroker {
     
@@ -49,6 +50,10 @@ open class MQTTSession: MQTTBroker {
         self.clientID = clientID
         self.cleanSession = cleanSession
         self.keepAlive = keepAlive
+    }
+    
+    deinit {
+        disconnect()
     }
     
     open func publish(_ data: Data, in topic: String, delivering qos: MQTTQoS, retain: Bool, completion: MQTTSessionCompletionBlock?) {
@@ -90,8 +95,7 @@ open class MQTTSession: MQTTBroker {
         stream.delegate = self
         stream.createStreamConnection()
         
-        // TODO: main thread?
-        keepAliveTimer = Timer(timeInterval: Double(keepAlive), target: self, selector: #selector(MQTTSession.keepAliveTimerFired), userInfo: nil, repeats: true)
+        keepAliveTimer = Timer(timeInterval: TimeInterval(keepAlive), target: self, selector: #selector(MQTTSession.keepAliveTimerFired), userInfo: nil, repeats: true)
         RunLoop.main.add(keepAliveTimer, forMode: .defaultRunLoopMode)
         
         // Create Connect Packet

@@ -12,6 +12,7 @@ OCI Changes:
     Propagate error object to delegate
     Optimizations to receiveDataOnStream
     Make MQTTSessionStreamDelegate var weak
+    Bug Fix in send for disconnected state
 */
 
 import Foundation
@@ -64,9 +65,9 @@ class MQTTSessionStream: NSObject, StreamDelegate {
         let networkPacket = packet.networkPacket()
         var bytes = [UInt8](repeating: 0, count: networkPacket.count)
         networkPacket.copyBytes(to: &bytes, count: networkPacket.count)
-        if let writtenLength = outputStream?.write(bytes, maxLength: networkPacket.count) {
-            return writtenLength;
-        }
+		if let outputStream = outputStream, outputStream.hasSpaceAvailable {
+			return outputStream.write(bytes, maxLength: networkPacket.count)
+		}
         return -1
     }
     
