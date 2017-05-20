@@ -115,6 +115,8 @@ class MQTTSessionStream: NSObject, StreamDelegate {
         var responseData: Data
         if totalLength > 0 {
             var buffer = [UInt8](repeating: 0, count: totalLength)
+            // TODO: Do we need to loop until maxLength is met?
+            // TODO: Should we reycle previous responseData buffer?
             let readLength = inputStream.read(&buffer, maxLength: buffer.count)
             responseData = Data(bytes: UnsafePointer<UInt8>(buffer), count: readLength)
         }
