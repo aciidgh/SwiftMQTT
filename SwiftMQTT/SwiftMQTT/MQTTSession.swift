@@ -205,6 +205,9 @@ extension MQTTSession: MQTTSessionStreamDelegate {
 			}
 			keepAliveTimer.resume()
 		}
+		else {
+			cleanupDisconnection(NSError(domain: "MQTTSession", code: 0, userInfo: nil))
+		}
 	}
 	
 	func mqttReceived(in stream: MQTTSessionStream, _ read: (_ buffer: UnsafeMutablePointer<UInt8>, _ maxLength: Int) -> Int) {
