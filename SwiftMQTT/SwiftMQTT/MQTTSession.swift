@@ -18,6 +18,7 @@ OCI Changes:
     Adhere to MQTTBroker
     Make deinit force disconnect
     MQTTSessionStream is now not recycled (RAII design pattern)
+    Move all packet parsing into model classes
 */
 
 import Foundation
@@ -49,10 +50,12 @@ open class MQTTSession: MQTTBroker {
     fileprivate var keepAliveTimer: Timer!
     fileprivate var connectionCompletionBlock: MQTTSessionCompletionBlock?
     fileprivate var messagesCompletionBlocks = [UInt16: MQTTSessionCompletionBlock]()
+    fileprivate var factory: MQTTPacketFactory
     
     fileprivate var stream: MQTTSessionStream?
     
     public init(host: String, port: UInt16, clientID: String, cleanSession: Bool, keepAlive: UInt16, connectionTimeout: TimeInterval = 1.0, useSSL: Bool = false) {
+        self.factory = MQTTPacketFactory()
         self.host = host
         self.port = port
 		self.connectionTimeout = connectionTimeout
@@ -134,29 +137,24 @@ open class MQTTSession: MQTTBroker {
         return false
     }
     
-    fileprivate func parse(_ networkData: Data, header: MQTTPacketFixedHeader) {
-        switch header.packetType {
-        case .connAck:
-            let connAckPacket = MQTTConnAckPacket(header: header, networkData: networkData)
+    fileprivate func handle(_ packet: MQTTPacket) {
+        switch packet {
+        case let connAckPacket as MQTTConnAckPacket:
             let success = (connAckPacket.response == .connectionAccepted)
             connectionCompletionBlock?(success, connAckPacket.response)
             connectionCompletionBlock = nil
-        case .subAck:
-            let subAckPacket = MQTTSubAckPacket(header: header, networkData: networkData)
+        case let subAckPacket as MQTTSubAckPacket:
             callSuccessCompletionBlock(for: subAckPacket.messageID)
-        case .unSubAck:
-            let unSubAckPacket = MQTTUnSubAckPacket(header: header, networkData: networkData)
+        case let unSubAckPacket as MQTTUnSubAckPacket:
             callSuccessCompletionBlock(for: unSubAckPacket.messageID)
-        case .pubAck:
-            let pubAck = MQTTPubAck(header: header, networkData: networkData)
+        case let pubAck as MQTTPubAck:
             callSuccessCompletionBlock(for: pubAck.messageID)
-        case .publish:
-            let publishPacket = MQTTPublishPacket(header: header, networkData: networkData)
+        case let publishPacket as MQTTPublishPacket:
             sendPubAck(for: publishPacket.messageID)
 			let message = MQTTMessage(publishPacket: publishPacket)
             delegate?.mqttDidReceive(message: message, from: self)
-        case .pingResp:
-            _ = MQTTPingResp(header: header)
+        case _ as MQTTPingResp:
+            break
         default:
             return
         }
@@ -202,40 +200,10 @@ extension MQTTSession: MQTTSessionStreamDelegate {
         }
 	}
 	
-	
 	func mqttReceived(in stream: MQTTSessionStream, _ read: (_ buffer: UnsafeMutablePointer<UInt8>, _ maxLength: Int) -> Int) {
-	        var headerByte = [UInt8](repeating: 0, count: 1)
-        let len = read(&headerByte, 1)
-		guard len > 0 else { return }
-        let header = MQTTPacketFixedHeader(networkByte: headerByte[0])
-        
-        // Max Length is 2^28 = 268,435,455 (256 MB)
-        var multiplier = 1
-        var value = 0
-        var encodedByte: UInt8 = 0
-        repeat {
-            let _ = read(&encodedByte, 1)
-            value += (Int(encodedByte) & 127) * multiplier
-            multiplier *= 128
-            if multiplier > 128*128*128 {
-                return
-            }
-        } while ((Int(encodedByte) & 128) != 0)
-        
-        let totalLength = value
-        
-        var responseData: Data
-        if totalLength > 0 {
-            var buffer = [UInt8](repeating: 0, count: totalLength)
-            // TODO: Do we need to loop until maxLength is met?
-            // TODO: Should we recycle previous responseData buffer?
-            let readLength = read(&buffer, buffer.count)
-            responseData = Data(bytes: UnsafePointer<UInt8>(buffer), count: readLength)
+        if let packet = factory.parse(read) {
+            handle(packet)
         }
-		else {
-			responseData = Data()
-		}
-        parse(responseData, header: header)
 	}
     
     func mqttErrorOccurred(in stream: MQTTSessionStream, error: Error?) {
