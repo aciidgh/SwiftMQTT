@@ -51,7 +51,6 @@ public extension MQTTSession {
 */
 
 public class MQTTBatchingSession: MQTTBroker {
-	fileprivate var sessionQueue: DispatchQueue
 	fileprivate var issueQueue: DispatchQueue
     fileprivate let connectParams: MQTTConnectParams
     fileprivate let session: MQTTSession
@@ -61,7 +60,6 @@ public class MQTTBatchingSession: MQTTBroker {
     
     public init(connectParams: MQTTConnectParams, batchPredicate: @escaping ([MQTTMessage])->Bool) {
         self.batchPredicate = batchPredicate
-        self.sessionQueue = DispatchQueue(label: "com.SwiftMQTT.session", qos: .background, target: nil)
         self.issueQueue = DispatchQueue(label: "com.SwiftMQTT.issue", qos: .background, target: nil)
         self.connectParams = connectParams
         self.session = MQTTSession(connectParams: connectParams)
@@ -69,11 +67,7 @@ public class MQTTBatchingSession: MQTTBroker {
     }
     
     public func connect(completion: MQTTSessionCompletionBlock? = nil) {
-        sessionQueue.async { [weak self] in
-			let currentRunLoop = RunLoop.current
-			self?.session.connect(completion: completion)
-			currentRunLoop.run()
-        }
+        self.session.connect(completion: completion)
     }
     
     public func publish(_ data: Data, in topic: String, delivering qos: MQTTQoS, retain: Bool, completion: MQTTSessionCompletionBlock?) {

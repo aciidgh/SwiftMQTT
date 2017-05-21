@@ -15,6 +15,7 @@ OCI Changes:
     Make MQTTSessionStreamDelegate var weak
     MQTTSessionStream is now not recycled (RAII design pattern)
 	Move the little bit of parsing out of this class. This only manages the stream.
+    Always use dedicated queue for streams
 */
 
 import Foundation
@@ -30,6 +31,7 @@ class MQTTSessionStream: NSObject, StreamDelegate {
     private let inputStream: InputStream?
     private let outputStream: OutputStream?
     private weak var delegate: MQTTSessionStreamDelegate?
+	fileprivate var sessionQueue: DispatchQueue
 	
 	private var inputReady = false
 	private var outputReady = false
@@ -38,26 +40,39 @@ class MQTTSessionStream: NSObject, StreamDelegate {
         var inputStream: InputStream?
         var outputStream: OutputStream?
         Stream.getStreamsToHost(withName: host, port: Int(port), inputStream: &inputStream, outputStream: &outputStream)
+        
+        var parts = host.components(separatedBy: ".")
+        parts.insert("stream\(port)", at: 0)
+        let label = parts.reversed().joined(separator: ".")
+        
+        self.sessionQueue = DispatchQueue(label: label, qos: .background, target: nil)
         self.delegate = delegate
         self.inputStream = inputStream
         self.outputStream = outputStream
         super.init()
+        
         inputStream?.delegate = self
         outputStream?.delegate = self
-        inputStream?.schedule(in: .current, forMode: .defaultRunLoopMode)
-        outputStream?.schedule(in: .current, forMode: .defaultRunLoopMode)
-        inputStream?.open()
-        outputStream?.open()
-        if ssl {
-            let securityLevel = StreamSocketSecurityLevel.negotiatedSSL.rawValue
-            inputStream?.setProperty(securityLevel, forKey: Stream.PropertyKey.socketSecurityLevelKey)
-            outputStream?.setProperty(securityLevel, forKey: Stream.PropertyKey.socketSecurityLevelKey)
+        
+        sessionQueue.async { [weak self] in
+            let currentRunLoop = RunLoop.current
+            inputStream?.schedule(in: currentRunLoop, forMode: .defaultRunLoopMode)
+            outputStream?.schedule(in: currentRunLoop, forMode: .defaultRunLoopMode)
+            inputStream?.open()
+            outputStream?.open()
+            if ssl {
+                let securityLevel = StreamSocketSecurityLevel.negotiatedSSL.rawValue
+                inputStream?.setProperty(securityLevel, forKey: Stream.PropertyKey.socketSecurityLevelKey)
+                outputStream?.setProperty(securityLevel, forKey: Stream.PropertyKey.socketSecurityLevelKey)
+            }
+			if timeout > 0 {
+				DispatchQueue.global().asyncAfter(deadline: .now() +  timeout) {
+					self?.connectTimeout()
+				}
+			}
+            currentRunLoop.run()
         }
-		DispatchQueue.global().asyncAfter(deadline: .now() +  timeout) { [weak self] in
-			self?.connectTimeout()
-		}
     }
-    
     deinit {
         inputStream?.close()
         inputStream?.remove(from: .current, forMode: .defaultRunLoopMode)

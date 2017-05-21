@@ -19,6 +19,7 @@ OCI Changes:
     Make deinit force disconnect
     MQTTSessionStream is now not recycled (RAII design pattern)
     Move all packet parsing into model classes
+    Replace main thread obj-c timer with background GCD time
 */
 
 import Foundation
@@ -47,7 +48,7 @@ open class MQTTSession: MQTTBroker {
 
     open weak var delegate: MQTTSessionDelegate?
 	
-    fileprivate var keepAliveTimer: Timer!
+    fileprivate var keepAliveTimer: DispatchSourceTimer!
     fileprivate var connectionCompletionBlock: MQTTSessionCompletionBlock?
     fileprivate var messagesCompletionBlocks = [UInt16: MQTTSessionCompletionBlock]()
     fileprivate var factory: MQTTPacketFactory
@@ -107,9 +108,6 @@ open class MQTTSession: MQTTBroker {
         // Open Stream
 		connectionCompletionBlock = completion
         stream = MQTTSessionStream(host: host, port: port, ssl: useSSL, timeout: connectionTimeout, delegate: self)
-        
-        keepAliveTimer = Timer(timeInterval: TimeInterval(keepAlive), target: self, selector: #selector(MQTTSession.keepAliveTimerFired), userInfo: nil, repeats: true)
-        RunLoop.main.add(keepAliveTimer, forMode: .defaultRunLoopMode)
     }
     
     open func disconnect() {
@@ -120,7 +118,7 @@ open class MQTTSession: MQTTBroker {
     
     fileprivate func cleanupDisconnection(_ error: Error?) {
         stream = nil
-        keepAliveTimer?.invalidate()
+        keepAliveTimer?.cancel()
         delegate?.mqttDidDisconnect(session: self, error: error)
     }
     
@@ -170,7 +168,7 @@ open class MQTTSession: MQTTBroker {
         completionBlock?(true, MQTTSessionError.none)
     }
     
-    @objc fileprivate func keepAliveTimerFired() {
+    fileprivate func keepAliveTimerFired() {
         let mqttPingReq = MQTTPingPacket()
         send(mqttPingReq)
     }
@@ -187,17 +185,26 @@ open class MQTTSession: MQTTBroker {
 extension MQTTSession: MQTTSessionStreamDelegate {
 
 	func mqttReady(_ ready: Bool, in stream: MQTTSessionStream) {
-		// Create Connect Packet
-        let connectPacket = MQTTConnectPacket(clientID: clientID, cleanSession: cleanSession, keepAlive: keepAlive)
-        // Set Optional vars
-        connectPacket.username = username
-        connectPacket.password = password
-        connectPacket.lastWillMessage = lastWillMessage
-        
-        if send(connectPacket) == false {
-            connectionCompletionBlock?(false, MQTTSessionError.socketError)
-			connectionCompletionBlock = nil
-        }
+		if ready {
+			// Create Connect Packet
+			let connectPacket = MQTTConnectPacket(clientID: clientID, cleanSession: cleanSession, keepAlive: keepAlive)
+			// Set Optional vars
+			connectPacket.username = username
+			connectPacket.password = password
+			connectPacket.lastWillMessage = lastWillMessage
+			
+			if send(connectPacket) == false {
+				connectionCompletionBlock?(false, MQTTSessionError.socketError)
+				connectionCompletionBlock = nil
+			}
+			
+			keepAliveTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
+			keepAliveTimer.scheduleRepeating(deadline: .now() + .seconds(Int(keepAlive)), interval: .seconds(Int(keepAlive)), leeway: .seconds(1))
+			keepAliveTimer.setEventHandler { [weak self] in
+				self?.keepAliveTimerFired()
+			}
+			keepAliveTimer.resume()
+		}
 	}
 	
 	func mqttReceived(in stream: MQTTSessionStream, _ read: (_ buffer: UnsafeMutablePointer<UInt8>, _ maxLength: Int) -> Int) {
