@@ -33,7 +33,14 @@ public struct MQTTConnectParams {
 
 public extension MQTTSession {
     public convenience init(connectParams: MQTTConnectParams) {
-        self.init(host: connectParams.host, port: connectParams.port, clientID: connectParams.clientID, cleanSession: connectParams.cleanSession, keepAlive: connectParams.keepAlive, useSSL: connectParams.useSSL)
+        self.init(
+			host: connectParams.host,
+			port: connectParams.port,
+			clientID: connectParams.clientID,
+			cleanSession: connectParams.cleanSession,
+			keepAlive: connectParams.keepAlive,
+			connectionTimeout: connectParams.retryTimeInterval,
+			useSSL: connectParams.useSSL)
     }
 }
 

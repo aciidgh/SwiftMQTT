@@ -8,6 +8,7 @@
 
 /*
 OCI Changes:
+    Bug Fix - do not MQTT connect until ports are ready
     Encapsulate mqttDidReceive params into MQTTMessage struct
     Propagate error objects to delegate
     Single delegate call on errored disconnect
@@ -29,9 +30,10 @@ public protocol MQTTSessionDelegate: class {
 public typealias MQTTSessionCompletionBlock = (_ succeeded: Bool, _ error: Error?) -> Void
 
 open class MQTTSession: MQTTBroker {
-    
+	
     let host: String
     let port: UInt16
+    let connectionTimeout: TimeInterval
     let useSSL: Bool
     
     open let cleanSession: Bool
@@ -50,9 +52,10 @@ open class MQTTSession: MQTTBroker {
     
     fileprivate var stream: MQTTSessionStream?
     
-    public init(host: String, port: UInt16, clientID: String, cleanSession: Bool, keepAlive: UInt16, useSSL: Bool = false) {
+    public init(host: String, port: UInt16, clientID: String, cleanSession: Bool, keepAlive: UInt16, connectionTimeout: TimeInterval = 1.0, useSSL: Bool = false) {
         self.host = host
         self.port = port
+		self.connectionTimeout = connectionTimeout
         self.useSSL = useSSL
         self.clientID = clientID
         self.cleanSession = cleanSession
@@ -99,23 +102,11 @@ open class MQTTSession: MQTTBroker {
     
     open func connect(completion: MQTTSessionCompletionBlock?) {
         // Open Stream
-        stream = MQTTSessionStream(host: host, port: port, ssl: useSSL, delegate: self)
+		connectionCompletionBlock = completion
+        stream = MQTTSessionStream(host: host, port: port, ssl: useSSL, timeout: connectionTimeout, delegate: self)
         
         keepAliveTimer = Timer(timeInterval: TimeInterval(keepAlive), target: self, selector: #selector(MQTTSession.keepAliveTimerFired), userInfo: nil, repeats: true)
         RunLoop.main.add(keepAliveTimer, forMode: .defaultRunLoopMode)
-        
-        // Create Connect Packet
-        let connectPacket = MQTTConnectPacket(clientID: clientID, cleanSession: cleanSession, keepAlive: keepAlive)
-        // Set Optional vars
-        connectPacket.username = username
-        connectPacket.password = password
-        connectPacket.lastWillMessage = lastWillMessage
-        
-        if send(connectPacket) {
-            connectionCompletionBlock = completion
-        } else {
-            completion?(false, MQTTSessionError.socketError)
-        }
     }
     
     open func disconnect() {
@@ -196,6 +187,21 @@ open class MQTTSession: MQTTBroker {
 }
 
 extension MQTTSession: MQTTSessionStreamDelegate {
+
+	func mqttReady(_ ready: Bool, in stream: MQTTSessionStream) {
+		// Create Connect Packet
+        let connectPacket = MQTTConnectPacket(clientID: clientID, cleanSession: cleanSession, keepAlive: keepAlive)
+        // Set Optional vars
+        connectPacket.username = username
+        connectPacket.password = password
+        connectPacket.lastWillMessage = lastWillMessage
+        
+        if send(connectPacket) == false {
+            connectionCompletionBlock?(false, MQTTSessionError.socketError)
+			connectionCompletionBlock = nil
+        }
+	}
+	
     func mqttReceived(_ data: Data, header: MQTTPacketFixedHeader, in stream: MQTTSessionStream) {
         parse(data, header: header)
     }
