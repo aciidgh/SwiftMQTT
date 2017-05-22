@@ -13,7 +13,7 @@ public class MQTTDatedSnapshot {
 	private let interval: TimeInterval
 	private let dispatch: ([String: MQTTMessage])->()
 	
-	private var begin = clock()
+	private var begin: clock_t? = nil
 	private var messages : [String: MQTTMessage] = [:]
 	
 	public init(label: String, interval: TimeInterval = 3.0, dispatch: @escaping ([String: MQTTMessage])->()) {
@@ -21,11 +21,23 @@ public class MQTTDatedSnapshot {
 		self.interval = interval
 		self.dispatch = dispatch
 	}
+    
+    public func sendNow() {
+        begin = nil
+        let copy = messages
+        messages.removeAll(keepingCapacity: true)
+        self.issueQueue.async { [weak self] in
+            self?.dispatch(copy)
+        }
+    }
 	
 	public func on(message: MQTTMessage) {
 		messages[message.topic] = message
+        if begin == nil {
+            begin = clock()
+        }
 		let now = clock()
-		let diff = TimeInterval(now - begin) / TimeInterval(CLOCKS_PER_SEC) * 10.0
+		let diff = TimeInterval(now - begin!) / TimeInterval(CLOCKS_PER_SEC) * 10.0
 		if diff > interval {
 			begin = now
 			let copy = messages
