@@ -7,9 +7,17 @@
 //
 
 import Foundation
-
+/*
+struct DatedBunch {
+	fileprivate let issueQueue: DispatchQueue
+	var lastSend = Date()
+	var messages : [String: MQTTMessage]
+	public func on(message: MQTTMessage)
+	}
+}
+*/
 public protocol MQTTBatchingSessionDelegate: class {
-    func mqttDidReceive(messages: [MQTTMessage], from session: MQTTBatchingSession)
+    func mqttDidReceive(message: MQTTMessage, from session: MQTTBatchingSession)
     func mqttConnected(_ changed: Bool, for: MQTTBatchingSession, error: Error?)
 }
 
@@ -27,8 +35,11 @@ public struct MQTTConnectParams {
     public var cleanSession: Bool = true
     public var keepAlive: UInt16 = 15
     public var useSSL: Bool = false
+	
+    public var timeout: TimeInterval = 1.0
     public var retryCount: Int = 3
     public var retryTimeInterval: TimeInterval = 1.0
+    public var resuscitateTimeInterval: TimeInterval = 5.0
 }
 
 public extension MQTTSession {
@@ -39,7 +50,7 @@ public extension MQTTSession {
 			clientID: connectParams.clientID,
 			cleanSession: connectParams.cleanSession,
 			keepAlive: connectParams.keepAlive,
-			connectionTimeout: connectParams.retryTimeInterval,
+			connectionTimeout: connectParams.timeout,
 			useSSL: connectParams.useSSL)
     }
 }
@@ -84,7 +95,7 @@ public class MQTTBatchingSession: MQTTBroker {
     public func disconnect() {
         self.session = nil
         issueQueue.async {
-            self.delegate?.mqttConnected(false, for: self, error: error)
+            self.delegate?.mqttConnected(false, for: self, error: nil)
         }
     }
 }
@@ -123,7 +134,7 @@ extension MQTTBatchingSession {
     
     fileprivate func connectResuscitate(_ completion: MQTTSessionCompletionBlock?) {
         if connectParams.keepAlive > 0 {
-            DispatchQueue.global().asyncAfter(deadline: .now() + TimeInterval(connectParams.keepAlive)) { [weak self] in
+            DispatchQueue.global().asyncAfter(deadline: .now() + connectParams.resuscitateTimeInterval) { [weak self] in
                 self?.connect { success, newError in
                     if success {
                         completion?(success, newError)
@@ -144,7 +155,7 @@ extension MQTTBatchingSession: MQTTSessionDelegate {
 
     public func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
 		issueQueue.async {
-			self.delegate?.mqttDidReceive(messages: [message], from: self)
+			self.delegate?.mqttDidReceive(message: message, from: self)
 		}
     }
 
