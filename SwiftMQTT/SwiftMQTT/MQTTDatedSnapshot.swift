@@ -34,7 +34,7 @@ private final class ReadWriteMutex {
 
 public class MQTTDatedSnapshot {
 	private let issueQueue: DispatchQueue
-    private let keepAliveTimer: DispatchSourceTimer!
+    private let sendTimer: DispatchSourceTimer!
 	private let interval: TimeInterval
 	private let dispatch: ([String: MQTTMessage])->()
 	private let lock = ReadWriteMutex()
@@ -46,13 +46,17 @@ public class MQTTDatedSnapshot {
 		self.interval = interval
 		self.dispatch = dispatch
 		
-		keepAliveTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
-		keepAliveTimer.scheduleRepeating(deadline: .now() + interval, interval: interval)
-		keepAliveTimer.setEventHandler { [weak self] in
+		sendTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
+		sendTimer.scheduleRepeating(deadline: .now() + interval, interval: interval)
+		sendTimer.setEventHandler { [weak self] in
 			self?.sendNow()
 		}
-		keepAliveTimer.resume()
+		sendTimer.resume()
 	}
+    
+    deinit {
+        sendTimer.cancel()
+    }
     
     public func sendNow() {
 		let local: [String: MQTTMessage] = lock.writing {
@@ -60,17 +64,18 @@ public class MQTTDatedSnapshot {
 			messages.removeAll(keepingCapacity: true)
 			return copy
 		}
-        self.issueQueue.async { [weak self] in
-            self?.dispatch(local)
-        }
+		if !local.isEmpty {
+			self.issueQueue.async { [weak self] in
+				self?.dispatch(local)
+			}
+		}
     }
 	
 	public func on(message: MQTTMessage) {
-		if messages[message.topic] != nil && message.retain {
-			return
-		}
 		lock.writing {
-			messages[message.topic] = message
+			if messages[message.topic] == nil || message.retain == false {
+				messages[message.topic] = message
+			}
 		}
 	}
 }
