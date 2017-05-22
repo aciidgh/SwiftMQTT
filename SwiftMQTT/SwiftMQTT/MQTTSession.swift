@@ -20,6 +20,7 @@ OCI Changes:
     MQTTSessionStream is now not recycled (RAII design pattern)
     Move all packet parsing into model classes
     Replace main thread obj-c timer with background GCD time
+    message ids cannot be static if app has multiple MQTTSessions
 */
 
 import Foundation
@@ -179,12 +180,11 @@ open class MQTTSession: MQTTBroker {
         send(mqttPingReq)
     }
     
+    private var messageID = UInt16(0)
+    
     fileprivate func nextMessageID() -> UInt16 {
-        struct MessageIDHolder {
-            static var messageID = UInt16(0)
-        }
-        MessageIDHolder.messageID += 1
-        return MessageIDHolder.messageID
+        messageID += 1
+        return messageID
     }
 }
 
