@@ -123,7 +123,7 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
         print("received:", message.stringRep ?? "<>", "in:", message.topic)
     }
     
-    func mqttDidDisconnect(session: MQTTSession, error: Error?) {
+    func mqttDidDisconnect(session: MQTTSession, reson: MQTTSessionDisconnect, error: Error?) {
         print("did disconnect")
     }
 

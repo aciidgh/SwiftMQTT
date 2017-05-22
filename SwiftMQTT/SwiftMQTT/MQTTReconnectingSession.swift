@@ -1,5 +1,5 @@
 //
-//  MQTTBatchingSession.swift
+//  MQTTReconnectingSession.swift
 //  SwiftMQTT
 //
 //  Created by David Giovannini on 5/20/17.
@@ -7,19 +7,15 @@
 //
 
 import Foundation
+
+public protocol MQTTReconnectingSessionDelegate: class {
+    func mqttDidReceive(message: MQTTMessage, from session: MQTTReconnectingSession)
+    func mqttConnected(_ changed: Bool, for: MQTTReconnectingSession, error: Error?)
+}
+
 /*
-struct DatedBunch {
-	fileprivate let issueQueue: DispatchQueue
-	var lastSend = Date()
-	var messages : [String: MQTTMessage]
-	public func on(message: MQTTMessage)
-	}
-}
+    TODO: encapsulate credentials
 */
-public protocol MQTTBatchingSessionDelegate: class {
-    func mqttDidReceive(message: MQTTMessage, from session: MQTTBatchingSession)
-    func mqttConnected(_ changed: Bool, for: MQTTBatchingSession, error: Error?)
-}
 
 public struct MQTTCredentials {
     // username, password, useSSL, certs, lastWill
@@ -55,22 +51,15 @@ public extension MQTTSession {
     }
 }
 
-/*
-    TODO: batch sends
-    TODO: encapsulate credentials
-*/
-
-public class MQTTBatchingSession: MQTTBroker {
-	fileprivate let issueQueue: DispatchQueue
+public class MQTTReconnectingSession: MQTTBroker {
     fileprivate let connectParams: MQTTConnectParams
     fileprivate let batchPredicate: ([MQTTMessage])->Bool
     fileprivate var session: MQTTSession!
     
-    open weak var delegate: MQTTBatchingSessionDelegate?
+    open weak var delegate: MQTTReconnectingSessionDelegate?
     
     public init(connectParams: MQTTConnectParams, batchPredicate: @escaping ([MQTTMessage])->Bool) {
         self.batchPredicate = batchPredicate
-        self.issueQueue = DispatchQueue(label: "com.SwiftMQTT.issue", qos: .background, target: nil)
         self.connectParams = connectParams
     }
     
@@ -94,21 +83,17 @@ public class MQTTBatchingSession: MQTTBroker {
     
     public func disconnect() {
         self.session = nil
-        issueQueue.async {
-            self.delegate?.mqttConnected(false, for: self, error: nil)
-        }
+		self.delegate?.mqttConnected(false, for: self, error: nil)
     }
 }
 
-extension MQTTBatchingSession {
+extension MQTTReconnectingSession {
     fileprivate func connectWithRetry(_ attempt: Int, _ error: Error?, _ completion: MQTTSessionCompletionBlock?) {
         self.session.connect { [weak self] success, newError in
             if success {
                 completion?(success, newError)
                 if let inform = self {
-                    inform.issueQueue.async {
-                        inform.delegate?.mqttConnected(true, for: inform, error: newError ?? error)
-                    }
+					inform.delegate?.mqttConnected(true, for: inform, error: newError ?? error)
                 }
             }
             else if let retry = self {
@@ -151,12 +136,10 @@ extension MQTTBatchingSession {
     }
 }
 
-extension MQTTBatchingSession: MQTTSessionDelegate {
+extension MQTTReconnectingSession: MQTTSessionDelegate {
 
     public func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
-		issueQueue.async {
-			self.delegate?.mqttDidReceive(message: message, from: self)
-		}
+		self.delegate?.mqttDidReceive(message: message, from: self)
     }
 
     public func mqttDidDisconnect(session: MQTTSession, reson: MQTTSessionDisconnect, error: Error?) {
