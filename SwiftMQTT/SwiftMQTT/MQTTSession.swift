@@ -24,9 +24,15 @@ OCI Changes:
 
 import Foundation
 
+public enum MQTTSessionDisconnect {
+	case manual
+	case failedConnect
+	case unexpected
+}
+
 public protocol MQTTSessionDelegate: class {
     func mqttDidReceive(message: MQTTMessage, from session: MQTTSession)
-    func mqttDidDisconnect(session: MQTTSession, error: Error?)
+    func mqttDidDisconnect(session: MQTTSession, reson: MQTTSessionDisconnect, error: Error?)
 }
 
 public typealias MQTTSessionCompletionBlock = (_ succeeded: Bool, _ error: Error?) -> Void
@@ -113,13 +119,13 @@ open class MQTTSession: MQTTBroker {
     open func disconnect() {
         let disconnectPacket = MQTTDisconnectPacket()
         send(disconnectPacket)
-        cleanupDisconnection(nil)
+        cleanupDisconnection(.manual, nil)
     }
     
-    fileprivate func cleanupDisconnection(_ error: Error?) {
+    fileprivate func cleanupDisconnection(_ reson: MQTTSessionDisconnect, _ error: Error?) {
         stream = nil
         keepAliveTimer?.cancel()
-        delegate?.mqttDidDisconnect(session: self, error: error)
+		delegate?.mqttDidDisconnect(session: self, reson: reson, error: error)
     }
     
     @discardableResult
@@ -128,7 +134,7 @@ open class MQTTSession: MQTTBroker {
             let writtenLength = stream.send(packet)
             let didWriteSuccessfully = writtenLength != -1
             if !didWriteSuccessfully {
-                cleanupDisconnection(NSError(domain: "MQTTSession", code: 0, userInfo: nil))
+                cleanupDisconnection(.unexpected, nil)
             }
             return didWriteSuccessfully
         }
@@ -206,7 +212,8 @@ extension MQTTSession: MQTTSessionStreamDelegate {
 			keepAliveTimer.resume()
 		}
 		else {
-			cleanupDisconnection(NSError(domain: "MQTTSession", code: 0, userInfo: nil))
+			cleanupDisconnection(.failedConnect, nil)
+			connectionCompletionBlock?(false, MQTTSessionError.socketError)
 		}
 	}
 	
@@ -217,6 +224,6 @@ extension MQTTSession: MQTTSessionStreamDelegate {
 	}
     
     func mqttErrorOccurred(in stream: MQTTSessionStream, error: Error?) {
-        cleanupDisconnection(error)
+        cleanupDisconnection(.unexpected, error)
     }
 }
