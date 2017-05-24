@@ -22,7 +22,7 @@ class MQTTPublishPacket: MQTTPacket {
     class func fixedHeaderFlags(for message: MQTTPubMsg) -> UInt8 {
         var flags = UInt8(0)
         if message.retain {
-            flags |= 0x08
+            flags |= 0x01
         }
         flags |= message.QoS.rawValue << 1
         return flags

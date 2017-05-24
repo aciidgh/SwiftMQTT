@@ -75,6 +75,42 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
         }
     }
     
+    func testPublishPacketHeader() {
+        let retainPubMsg = MQTTPubMsg(topic: "test", payload: "Test".data(using: .utf8)!, retain: true, QoS: .atMostOnce)
+        
+        let retainPubPacket = MQTTPublishPacket(messageID: 1, message: retainPubMsg)
+        
+        let retainFlag = retainPubPacket.header.flags & 0x01
+        
+        XCTAssert(retainFlag == 1, "Header retention bit is not set")
+        
+        let qos0 = (retainPubPacket.header.flags & 0x06) >> 1
+        
+        XCTAssert(qos0 == 0, "QoS not 0 for .atMostOnce")
+        
+        let nonretainPubMsg = MQTTPubMsg(topic:"test", payload:"Test".data(using: .utf8)!, retain:false, QoS: .atLeastOnce)
+        
+        let nonretainPubPacket = MQTTPublishPacket(messageID: 2, message: nonretainPubMsg)
+        
+        let nonretainFlag = nonretainPubPacket.header.flags & 0x01
+        
+        XCTAssert(nonretainFlag == 0, "Header retenion bit should not be set")
+        
+        let qos1 = (nonretainPubPacket.header.flags & 0x06) >> 1
+        
+        XCTAssert(qos1 == 1, "QoS not 1 for .atLeastOnce")
+        
+        let qos2PubMsg = MQTTPubMsg(topic:"test", payload:"Test".data(using: .utf8)!, retain:false, QoS: .exactlyOnce)
+        
+        let qos2PubPacket = MQTTPublishPacket(messageID: 3, message: qos2PubMsg)
+        
+        
+        let qos2 = (qos2PubPacket.header.flags & 0x06) >> 1
+        
+        XCTAssert(qos2 == 2, "QoS not 2 for .exactlyOnce")
+
+    }
+    
     func testUnSubscribe() {
         let expectation = self.expectation(description: "unSubscribe")
         mqttSession.unSubscribe(from: ["/hey/cool", "/no/ok"]) { (succeeded, error) -> Void in
