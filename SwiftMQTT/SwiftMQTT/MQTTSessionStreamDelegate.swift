@@ -19,8 +19,12 @@ class MQTTSessionStream: NSObject, StreamDelegate {
     internal let port: UInt16
     internal let ssl: Bool
     
-    fileprivate var inputStream: InputStream?
-    fileprivate var outputStream: OutputStream?
+    private var inputStream: InputStream?
+    private var outputStream: OutputStream?
+    
+    private var readMessage = Data()
+    // minimal size: 1 byte for fixed header and 1 byte for length of remaining message
+    private var expectedHeaderSize = 2
     
     internal var delegate: MQTTSessionStreamDelegate?
     
@@ -50,6 +54,9 @@ class MQTTSessionStream: NSObject, StreamDelegate {
         inputStream?.remove(from: .current, forMode: .defaultRunLoopMode)
         outputStream?.close()
         outputStream?.remove(from: .current, forMode: .defaultRunLoopMode)
+        
+        readMessage = Data()
+        expectedHeaderSize = 2
     }
     
     func send(_ packet: MQTTPacket) -> Int {
@@ -68,7 +75,7 @@ class MQTTSessionStream: NSObject, StreamDelegate {
         case Stream.Event.openCompleted: break
         case Stream.Event.hasBytesAvailable:
             if aStream == inputStream {
-                receiveDataOnStream(aStream)
+                receiveDataOnStream(inputStream!)
             }
         case Stream.Event.errorOccurred:
             closeStreams()
@@ -81,34 +88,65 @@ class MQTTSessionStream: NSObject, StreamDelegate {
         }
     }
     
-    fileprivate func receiveDataOnStream(_ stream: Stream) {
-        var headerByte = [UInt8](repeating: 0, count: 1)
-        guard let len = inputStream?.read(&headerByte, maxLength: 1), len > 0 else { return }
-        let header = MQTTPacketFixedHeader(networkByte: headerByte[0])
-        
-        // Max Length is 2^28 = 268,435,455 (256 MB)
-        var multiplier = 1
-        var value = 0
-        var encodedByte: UInt8 = 0
+    private func receiveDataOnStream(_ stream: InputStream) {
+        var buffer = [UInt8](repeating: 0, count: 1)
+        var readLength = 0
         repeat {
-            var readByte = [UInt8](repeating: 0, count: 1)
-            inputStream?.read(&readByte, maxLength: 1)
-            encodedByte = readByte[0]
-            value += (Int(encodedByte) & 127) * multiplier
-            multiplier *= 128
-            if multiplier > 128*128*128 {
+            readLength = stream.read(&buffer, maxLength: 1)
+            guard readLength > 0 else {
                 return
             }
-        } while ((Int(encodedByte) & 128) != 0)
-        
-        let totalLength = value
-        
-        var responseData = Data()
-        if totalLength > 0 {
-            var buffer = [UInt8](repeating: 0, count: totalLength)
-            let readLength = inputStream?.read(&buffer, maxLength: buffer.count)
-            responseData = Data(bytes: UnsafePointer<UInt8>(buffer), count: readLength!)
+            readMessage.append(buffer, count: readLength)
+            
+            if readMessage.count >= expectedHeaderSize {
+                if let (header, messageBody) = parse(readMessage) {
+                    // move to next message and reset minimal header size
+                    readMessage = readMessage.subdata(in: expectedHeaderSize+messageBody.count..<readMessage.count)
+                    expectedHeaderSize = 2
+                    
+                    // we should call delegate only after we have received full message
+                    delegate?.mqttReceived(messageBody, header: header, in: self)
+                }
+            }
+        } while (stream.hasBytesAvailable)
+    }
+    
+    private func parse(_ message: Data) -> (MQTTPacketFixedHeader, Data)? {
+        let header = MQTTPacketFixedHeader(networkByte: message[0])
+        guard let messageLength = parseLength(message.subdata(in: 1..<message.count)) else {
+            expectedHeaderSize += 1
+            return nil
         }
-        delegate?.mqttReceived(responseData, header: header, in: self)
+        guard message.count >= messageLength + expectedHeaderSize else {
+            return nil
+        }
+        
+        let messageBody = message.subdata(in: expectedHeaderSize..<expectedHeaderSize+messageLength)
+        
+        return (header, messageBody)
+    }
+    
+    private func parseLength(_ message: Data) -> Int? {
+        var message = message
+        var multiplier = 1
+        var value  = 0
+        var byte = UInt8(0x00)
+        
+        repeat {
+            guard message.count > 0 else {
+                return nil
+            }
+            
+            byte = UInt8(message[0])
+            message = message.subdata(in: 1..<message.count)
+            value += Int(byte & 127) * multiplier
+            multiplier *= 128
+            // Max Length is 2^28 = 268,435,455 (256 MB)
+            if (multiplier) > 128*128*128 {
+                break
+            }
+        } while (byte & 0x80 != 0)
+        
+        return value
     }
 }
