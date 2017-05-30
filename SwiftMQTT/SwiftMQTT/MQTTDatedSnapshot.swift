@@ -32,17 +32,19 @@ private final class ReadWriteMutex {
 	}
 }
 
-public class MQTTDatedSnapshot {
+public class MQTTDatedSnapshot<T> {
 	private let issueQueue: DispatchQueue
     private let sendTimer: DispatchSourceTimer!
 	private let interval: TimeInterval
-	private let dispatch: ([String: MQTTMessage])->()
+	private let dispatch: ([String: T])->()
+	private let map: (String, MQTTMessage)->T?
 	private let lock = ReadWriteMutex()
 
-	private var messages : [String: MQTTMessage] = [:]
+	private var messages : [String: T] = [:]
 	
-	public init(label: String, interval: TimeInterval = 3.0, dispatch: @escaping ([String: MQTTMessage])->()) {
+	public init(label: String, interval: TimeInterval = 3.0, map: @escaping (String, MQTTMessage)->T?, dispatch: @escaping ([String: T])->()) {
 		self.issueQueue = DispatchQueue(label: label, qos: .background, target: nil)
+		self.map = map
 		self.interval = interval
 		self.dispatch = dispatch
 		
@@ -59,7 +61,7 @@ public class MQTTDatedSnapshot {
     }
     
     public func sendNow() {
-		let local: [String: MQTTMessage] = lock.writing {
+		let local: [String: T] = lock.writing {
 			let copy = messages
 			messages.removeAll(keepingCapacity: true)
 			return copy
@@ -73,9 +75,9 @@ public class MQTTDatedSnapshot {
 	
 	public func on(message: MQTTMessage) {
 		lock.writing {
-			if messages[message.topic] == nil || message.retain == false {
-				messages[message.topic] = message
-			}
+			//if messages[message.topic] == nil || message.retain == false {
+				messages[message.topic] = map(message.topic, message)
+			//}
 		}
 	}
 }
