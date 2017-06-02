@@ -20,10 +20,10 @@ struct MQTTPacketFactory {
     ]
 
     func parse(_ read: (_ buffer: UnsafeMutablePointer<UInt8>, _ maxLength: Int) -> Int) -> MQTTPacket? {
-        var headerByte = [UInt8](repeating: 0, count: 1)
+        var headerByte: UInt8 = 0
         let len = read(&headerByte, 1)
 		guard len > 0 else { return nil }
-        let header = MQTTPacketFixedHeader(networkByte: headerByte[0])
+        let header = MQTTPacketFixedHeader(networkByte: headerByte)
         
         // Max Length is 2^28 = 268,435,455 (256 MB)
         var multiplier = 1
@@ -37,15 +37,19 @@ struct MQTTPacketFactory {
                 return nil
             }
         } while ((Int(encodedByte) & 128) != 0)
+		
+		// TODO: create a file strategy for large messages
         
         let totalLength = value
         
         var responseData: Data
         if totalLength > 0 {
-            var buffer = [UInt8](repeating: 0, count: totalLength)
-            // TODO: Do we need to loop until maxLength is met?
-            // TODO: Should we recycle previous responseData buffer?
-            let readLength = read(&buffer, buffer.count)
+            let buffer = [UInt8](repeating: 0, count: totalLength)
+			var readLength: Int = 0
+			repeat {
+				let b = UnsafeMutablePointer(mutating: buffer) + readLength
+				readLength += read(b, buffer.count - readLength)
+			} while readLength < buffer.count
             responseData = Data(bytes: UnsafePointer<UInt8>(buffer), count: readLength)
         }
 		else {
