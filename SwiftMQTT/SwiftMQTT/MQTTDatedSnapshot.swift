@@ -75,9 +75,7 @@ public class MQTTDatedSnapshot<T> {
 	
 	public func on(message: MQTTMessage) {
 		lock.writing {
-			//if messages[message.topic] == nil || message.retain == false {
-				messages[message.topic] = map(message.topic, message)
-			//}
+            messages[message.topic] = map(message.topic, message)
 		}
 	}
 }

@@ -8,6 +8,13 @@
 
 import Foundation
 
+/*
+OCI Changes:
+    Moved from Session
+    Optimizations to receiveDataOnStream
+    Fixed a bug where read needed to be in a loop
+*/
+
 struct MQTTPacketFactory {
 
     let constructors: [MQTTPacketType : (MQTTPacketFixedHeader, Data)->MQTTPacket] = [

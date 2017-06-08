@@ -57,10 +57,10 @@ open class MQTTSession: MQTTBroker {
 	
     fileprivate var keepAliveTimer: DispatchSourceTimer!
     fileprivate var connectionCompletionBlock: MQTTSessionCompletionBlock?
-    fileprivate var messagesCompletionBlocks = [UInt16: MQTTSessionCompletionBlock]()
+    private var messagesCompletionBlocks = [UInt16: MQTTSessionCompletionBlock]()
     fileprivate var factory: MQTTPacketFactory
     
-    fileprivate var stream: MQTTSessionStream?
+    private var stream: MQTTSessionStream?
     
     public init(host: String, port: UInt16, clientID: String, cleanSession: Bool, keepAlive: UInt16, connectionTimeout: TimeInterval = 1.0, useSSL: Bool = false) {
         self.factory = MQTTPacketFactory()
@@ -165,12 +165,12 @@ open class MQTTSession: MQTTBroker {
         }
     }
     
-    fileprivate func sendPubAck(for messageId: UInt16) {
+    private func sendPubAck(for messageId: UInt16) {
         let pubAck = MQTTPubAck(messageID: messageId)
         send(pubAck)
     }
     
-    fileprivate func callSuccessCompletionBlock(for messageId: UInt16) {
+    private func callSuccessCompletionBlock(for messageId: UInt16) {
         let completionBlock = messagesCompletionBlocks.removeValue(forKey: messageId)
         completionBlock?(true, MQTTSessionError.none)
     }
@@ -182,7 +182,7 @@ open class MQTTSession: MQTTBroker {
     
     private var messageID = UInt16(0)
     
-    fileprivate func nextMessageID() -> UInt16 {
+    private func nextMessageID() -> UInt16 {
         messageID += 1
         return messageID
     }

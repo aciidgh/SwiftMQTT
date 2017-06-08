@@ -53,7 +53,7 @@ public extension MQTTSession {
 
 public class MQTTReconnectingSession: MQTTBroker {
     fileprivate let connectParams: MQTTConnectParams
-    fileprivate let batchPredicate: ([MQTTMessage])->Bool
+    private let batchPredicate: ([MQTTMessage])->Bool
     fileprivate var session: MQTTSession!
     
     open weak var delegate: MQTTReconnectingSessionDelegate?
@@ -105,7 +105,7 @@ extension MQTTReconnectingSession {
         }
     }
     
-    fileprivate func doRetry(_ attempt: Int, _ error: Error?, _ completion: MQTTSessionCompletionBlock?) {
+    private func doRetry(_ attempt: Int, _ error: Error?, _ completion: MQTTSessionCompletionBlock?) {
         if attempt < connectParams.retryCount && connectParams.retryTimeInterval > 0.0 {
             DispatchQueue.global().asyncAfter(deadline: .now() + connectParams.retryTimeInterval) {
                 self.connectWithRetry(attempt + 1, error, completion)

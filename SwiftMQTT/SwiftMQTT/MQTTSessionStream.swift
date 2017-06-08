@@ -11,7 +11,6 @@ OCI Changes:
     Bug Fix - do not MQTT connect until ports are ready
     Changed name of file to match primary class
     Propagate error object to delegate
-    Optimizations to receiveDataOnStream
     Make MQTTSessionStreamDelegate var weak
     MQTTSessionStream is now not recycled (RAII design pattern)
 	Move the little bit of parsing out of this class. This only manages the stream.
@@ -26,15 +25,15 @@ protocol MQTTSessionStreamDelegate: class {
 	func mqttReceived(in stream: MQTTSessionStream, _ read: (_ buffer: UnsafeMutablePointer<UInt8>, _ maxLength: Int) -> Int)
 }
 
-class MQTTSessionStream: NSObject, StreamDelegate {
+class MQTTSessionStream: NSObject {
     
-    private let inputStream: InputStream?
-    private let outputStream: OutputStream?
-    private weak var delegate: MQTTSessionStreamDelegate?
-	fileprivate var sessionQueue: DispatchQueue
+    fileprivate let inputStream: InputStream?
+    fileprivate let outputStream: OutputStream?
+    fileprivate weak var delegate: MQTTSessionStreamDelegate?
+	private var sessionQueue: DispatchQueue
 	
-	private var inputReady = false
-	private var outputReady = false
+	fileprivate var inputReady = false
+	fileprivate var outputReady = false
     
     init(host: String, port: UInt16, ssl: Bool, timeout: TimeInterval, delegate: MQTTSessionStreamDelegate?) {
         var inputStream: InputStream?
@@ -73,6 +72,7 @@ class MQTTSessionStream: NSObject, StreamDelegate {
             currentRunLoop.run()
         }
     }
+    
     deinit {
         inputStream?.close()
         inputStream?.remove(from: .current, forMode: .defaultRunLoopMode)
@@ -95,48 +95,46 @@ class MQTTSessionStream: NSObject, StreamDelegate {
 			delegate?.mqttReady(false, in: self)
 		}
 	}
-    
+}
+
+extension MQTTSessionStream: StreamDelegate {
+    @objc
     internal func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
         switch eventCode {
         case Stream.Event.openCompleted:
-			let wasReady = inputReady && outputReady
+            let wasReady = inputReady && outputReady
             if aStream == inputStream {
-				inputReady = true
+                inputReady = true
             }
             else if aStream == outputStream {
-				// output almost ready
+                // output almost ready
             }
-			if !wasReady && inputReady && outputReady {
-				delegate?.mqttReady(true, in: self)
-			}
-			break
+            if !wasReady && inputReady && outputReady {
+                delegate?.mqttReady(true, in: self)
+            }
+            break
         case Stream.Event.hasBytesAvailable:
             if aStream == inputStream {
-                receiveDataOnStream(aStream)
+                delegate?.mqttReceived(in: self, inputStream!.read)
             }
-			break
+            break
         case Stream.Event.errorOccurred:
             delegate?.mqttErrorOccurred(in: self, error: aStream.streamError)
-			break
+            break
         case Stream.Event.endEncountered:
             delegate?.mqttErrorOccurred(in: self, error: aStream.streamError)
-			break
+            break
         case Stream.Event.hasSpaceAvailable:
-			let wasReady = inputReady && outputReady
+            let wasReady = inputReady && outputReady
             if aStream == outputStream {
                 outputReady = true
             }
-			if !wasReady && inputReady && outputReady {
-				delegate?.mqttReady(true, in: self)
-			}
-			break
+            if !wasReady && inputReady && outputReady {
+                delegate?.mqttReady(true, in: self)
+            }
+            break
         default:
-			break
+            break
         }
-    }
-    
-    fileprivate func receiveDataOnStream(_ stream: Stream) {
-		guard let inputStream = self.inputStream else { return }
-		delegate?.mqttReceived(in: self, inputStream.read)
     }
 }
