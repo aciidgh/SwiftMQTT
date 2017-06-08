@@ -8,20 +8,42 @@
 
 import Foundation
 
-public struct MQTTMessage {
+public enum MQTTPayload: CustomStringConvertible {
+    case data(Data)
+    //case file(FileHandle)
+    
+    public var stringRep: String? {
+        if case .data(let data) = self {
+            return String(data: data, encoding: .utf8)
+        }
+        return nil
+    }
+    
+    public var description: String {
+        if let str = stringRep {
+            return "'\(str)'"
+        }
+        if case .data(let data) = self {
+            return "#\(data.count)"
+        }
+        return "##"
+    }
+}
+
+public struct MQTTMessage: CustomStringConvertible {
 	public let topic: String
-	public let payload: Data
+	public let payload: MQTTPayload
 	public let id: UInt16
 	public let retain: Bool
 	
 	internal init(publishPacket: MQTTPublishPacket) {
 		self.topic = publishPacket.message.topic
-		self.payload = publishPacket.message.payload
+		self.payload = .data(publishPacket.message.payload)
 		self.id = publishPacket.messageID
 		self.retain = publishPacket.message.retain
 	}
     
-    public var stringRep: String? {
-        return String(data: self.payload, encoding: .utf8)
+    public var description: String {
+        return "\(id)) \(topic)\(retain ? "*" : "") = \(payload)"
     }
 }
