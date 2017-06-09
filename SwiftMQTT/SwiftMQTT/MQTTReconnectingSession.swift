@@ -120,20 +120,24 @@ extension MQTTReconnectingSession {
     fileprivate func connectResuscitate(_ completion: MQTTSessionCompletionBlock?) {
         if connectParams.keepAlive > 0 {
             DispatchQueue.global().asyncAfter(deadline: .now() + connectParams.resuscitateTimeInterval) { [weak self] in
-                self?.connect { success, newError in
-                    if success {
-                        completion?(success, newError)
-                    }
-                    else if let retry = self {
-                        retry.connectResuscitate(completion)
-                    }
-                    else {
-                        completion?(false, newError)
-                    }
-                }
+				self?.doResuscitate(completion)
             }
         }
     }
+	
+	private func doResuscitate(_ completion: MQTTSessionCompletionBlock?) {
+		self.connect { [weak self] success, newError in
+			if success {
+				completion?(success, newError)
+			}
+			else if let retry = self {
+				retry.connectResuscitate(completion)
+			}
+			else {
+				completion?(false, newError)
+			}
+		}
+	}
 }
 
 extension MQTTReconnectingSession: MQTTSessionDelegate {
