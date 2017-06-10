@@ -56,7 +56,7 @@ public class MQTTReconnectingSession: MQTTBroker {
     private let batchPredicate: ([MQTTMessage])->Bool
     fileprivate var session: MQTTSession!
     
-    open weak var delegate: MQTTReconnectingSessionDelegate?
+    public weak var delegate: MQTTReconnectingSessionDelegate?
     
     public init(connectParams: MQTTConnectParams, batchPredicate: @escaping ([MQTTMessage])->Bool) {
         self.batchPredicate = batchPredicate

@@ -9,6 +9,7 @@
 /*
 OCI Changes:
     Preallocate Data to avoid low-level realloc calls
+    Breakdown networkPacket() into overridable methods
 */
 
 import Foundation
@@ -61,14 +62,16 @@ class MQTTConnectPacket: MQTTPacket {
         return flags
     }
     
-    override func networkPacket() -> Data {
-        
+    override func variableHeader() -> Data {
         var variableHeader = Data(capacity: 1024)
         variableHeader.mqtt_append(protocolName)
         variableHeader.mqtt_append(protocolLevel)
         variableHeader.mqtt_append(encodedConnectFlags())
         variableHeader.mqtt_append(keepAlive)
-        
+        return variableHeader
+    }
+    
+    override func payload() -> Data {
         var payload = Data(capacity: 1024)
         payload.mqtt_append(clientID)
         
@@ -82,7 +85,6 @@ class MQTTConnectPacket: MQTTPacket {
         if let password = password {
             payload.mqtt_append(password)
         }
-        
-        return finalPacket(variableHeader, payload: payload)
+        return payload
     }
 }

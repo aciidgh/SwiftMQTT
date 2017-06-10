@@ -120,7 +120,7 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
     // MARK: MQTTSessionProtocol
     
     func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
-        print("received:", message.stringRep ?? "<>", "in:", message.topic)
+        print("received:", message.payload.stringRep ?? "<>", "in:", message.topic)
     }
     
     func mqttDidDisconnect(session: MQTTSession, reson: MQTTSessionDisconnect, error: Error?) {

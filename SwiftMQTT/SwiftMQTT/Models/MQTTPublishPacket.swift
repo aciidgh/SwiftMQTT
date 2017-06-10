@@ -6,12 +6,13 @@
 //  Copyright © 2015 Ankit. All rights reserved.
 //
 
+import Foundation
+
 /*
 OCI Changes:
     Preallocate Data to avoid low-level realloc calls
+    Breakdown networkPacket() into overridable methods
 */
-
-import Foundation
 
 class MQTTPublishPacket: MQTTPacket {
 
@@ -33,16 +34,17 @@ class MQTTPublishPacket: MQTTPacket {
         return flags
     }
     
-    override func networkPacket() -> Data {
-        // Variable Header
+    override func variableHeader() -> Data {
         var variableHeader = Data(capacity: 1024)
         variableHeader.mqtt_append(message.topic)
         if message.QoS != .atMostOnce {
             variableHeader.mqtt_append(messageID)
         }
-        // Payload
-        let payload = message.payload
-        return finalPacket(variableHeader, payload: payload)
+        return variableHeader
+    }
+    
+    override func payload() -> Data {
+        return message.payload
     }
     
     init(header: MQTTPacketFixedHeader, networkData: Data) {
