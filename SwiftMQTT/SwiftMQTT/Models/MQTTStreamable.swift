@@ -62,7 +62,7 @@ extension Data: MQTTStreamable {
                     break
                 }
                 readLength += bytesRead
-            } while readLength == totalLength
+            } while readLength < totalLength
         }
         return readLength == totalLength
     }
