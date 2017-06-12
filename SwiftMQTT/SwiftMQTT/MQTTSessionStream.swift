@@ -8,13 +8,14 @@
 
 /*
 OCI Changes:
-    Bug Fix - do not MQTT connect until ports are ready
+    Bug Fix - do not handshake until ports are ready
     Changed name of file to match primary class
     Propagate error object to delegate
     Make MQTTSessionStreamDelegate var weak
     MQTTSessionStream is now not recycled (RAII design pattern)
 	Move the little bit of parsing out of this class. This only manages the stream.
     Always use dedicated queue for streams
+    Remove all MQTT model dependencies
 */
 
 import Foundation
@@ -22,7 +23,7 @@ import Foundation
 protocol MQTTSessionStreamDelegate: class {
     func mqttReady(_ ready: Bool, in stream: MQTTSessionStream)
     func mqttErrorOccurred(in stream: MQTTSessionStream, error: Error?)
-	func mqttReceived(in stream: MQTTSessionStream, _ read: (_ buffer: UnsafeMutablePointer<UInt8>, _ maxLength: Int) -> Int)
+	func mqttReceived(in stream: MQTTSessionStream, _ read: StreamReader)
 }
 
 class MQTTSessionStream: NSObject {
@@ -80,14 +81,11 @@ class MQTTSessionStream: NSObject {
         outputStream?.remove(from: .current, forMode: .defaultRunLoopMode)
     }
     
-    func send(_ packet: MQTTPacket) -> Int {
-        let networkPacket = packet.networkPacket()
-        var bytes = [UInt8](repeating: 0, count: networkPacket.count)
-        networkPacket.copyBytes(to: &bytes, count: networkPacket.count)
+    var write: StreamWriter? {
 		if let outputStream = outputStream, outputReady {
-			return outputStream.write(bytes, maxLength: networkPacket.count)
+			return outputStream.write
 		}
-        return -1
+        return nil
     }
 	
 	internal func connectTimeout() {

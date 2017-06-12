@@ -11,8 +11,8 @@ import Foundation
 /*
 OCI Changes:
     Moved from Session
-    Optimizations to receiveDataOnStream
-    Fixed a bug where read needed to be in a loop
+    Do both marshal and unmarshal of MQTTPacket
+    Move stream read/write loops into MQTTStreamable
 */
 
 struct MQTTPacketFactory {
@@ -25,43 +25,25 @@ struct MQTTPacketFactory {
         .publish : MQTTPublishPacket.init,
         .pingResp : { h, _ in MQTTPingResp.init(header: h) }
     ]
+    
+    func send(_ packet: MQTTPacket, write: StreamWriter) -> Bool {
+        let networkPayload = packet.networkPacket()
+        if networkPayload.write(to: write) {
+            return true
+        }
+        return false
+    }
 
-    func parse(_ read: (_ buffer: UnsafeMutablePointer<UInt8>, _ maxLength: Int) -> Int) -> MQTTPacket? {
+    func parse(_ read: StreamReader) -> MQTTPacket? {
         var headerByte: UInt8 = 0
         let len = read(&headerByte, 1)
 		guard len > 0 else { return nil }
         let header = MQTTPacketFixedHeader(networkByte: headerByte)
-        
-        // Max Length is 2^28 = 268,435,455 (256 MB)
-        var multiplier = 1
-        var value = 0
-        var encodedByte: UInt8 = 0
-        repeat {
-            let _ = read(&encodedByte, 1)
-            value += (Int(encodedByte) & 127) * multiplier
-            multiplier *= 128
-            if multiplier > 128*128*128 {
-                return nil
+        if let len = Data.readPackedLength(from: read) {
+            if let data = Data(len: len, from: read) {
+                return constructors[header.packetType]?(header, data)
             }
-        } while ((Int(encodedByte) & 128) != 0)
-		
-		// TODO: create a file strategy for large messages
-        
-        let totalLength = value
-        
-        var responseData: Data
-        if totalLength > 0 {
-            let buffer = [UInt8](repeating: 0, count: totalLength)
-			var readLength: Int = 0
-			repeat {
-				let b = UnsafeMutablePointer(mutating: buffer) + readLength
-				readLength += read(b, buffer.count - readLength)
-			} while readLength < buffer.count
-            responseData = Data(bytes: UnsafePointer<UInt8>(buffer), count: readLength)
         }
-		else {
-			responseData = Data()
-		}
-        return constructors[header.packetType]?(header, responseData)
+        return nil
 	}
 }

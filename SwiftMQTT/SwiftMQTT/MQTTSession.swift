@@ -131,9 +131,8 @@ open class MQTTSession: MQTTBroker {
     
     @discardableResult
     fileprivate func send(_ packet: MQTTPacket) -> Bool {
-        if let stream = stream {
-            let writtenLength = stream.send(packet)
-            let didWriteSuccessfully = writtenLength != -1
+        if let write = stream?.write {
+            let didWriteSuccessfully = factory.send(packet, write: write)
             if !didWriteSuccessfully {
                 cleanupDisconnection(.unexpected, nil)
             }
@@ -217,7 +216,7 @@ extension MQTTSession: MQTTSessionStreamDelegate {
 		}
 	}
 	
-	func mqttReceived(in stream: MQTTSessionStream, _ read: (_ buffer: UnsafeMutablePointer<UInt8>, _ maxLength: Int) -> Int) {
+	func mqttReceived(in stream: MQTTSessionStream, _ read: StreamReader) {
         if let packet = factory.parse(read) {
             handle(packet)
         }
