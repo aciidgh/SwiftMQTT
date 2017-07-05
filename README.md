@@ -1,16 +1,16 @@
 # SwiftMQTT
 
-MQTT Client in pure Swift ❤️️
+MQTT Client in Swift
 
 [![Build Status](https://travis-ci.org/aciidb0mb3r/SwiftMQTT.svg)](https://travis-ci.org/aciidb0mb3r/SwiftMQTT)
 [![Version](https://img.shields.io/cocoapods/v/SwiftMQTT.svg?style=flat)](http://cocoapods.org/pods/SwiftMQTT)
 [![License](https://img.shields.io/cocoapods/l/SwiftMQTT.svg?style=flat)](http://cocoapods.org/pods/SwiftMQTT)
 
 ## Info
-* Fully written in Swift from ground up
-* Closures everywhere 😃
-* Includes test cases and sample project
-* Based on MQTT Version 3.1.1 (http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Toc398718043)
+* Fully written in Swift
+* Robust error handling
+* Reconnection logic
+* Performant
 
 ![Sample Project Screenshot](http://i.imgur.com/9lefVmVl.png)
 
@@ -65,8 +65,12 @@ mqttSession.publish(data, in: "/hey/wassap", delivering: .atLeastOnce, retain: f
 mqttSession.delegate = self
 ```
 ```swift
-func mqttSession(session: MQTTSession, received message: Data, in topic: String) {
-	let string = String(data: message, encoding: .utf8)!
+func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
+	let string = message.description
+}
+```
+```swift
+func mqttDidDisconnect(session: MQTTSession, reson: MQTTSessionDisconnect, error: Error?) {
 }
 ```
 
@@ -78,7 +82,7 @@ Install using [CocoaPods](http://cocoapods.org) by adding the following lines to
 
 ````ruby
 use_frameworks!
-pod 'SwiftMQTT'  
+pod 'SwiftMQTT', :git => 'https://github.com/oci-pronghorn/SwiftMQTT'
 ````
 
 ## License
