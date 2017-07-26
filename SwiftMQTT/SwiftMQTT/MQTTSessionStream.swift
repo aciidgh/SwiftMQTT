@@ -120,7 +120,9 @@ extension MQTTSessionStream: StreamDelegate {
             delegate?.mqttErrorOccurred(in: self, error: aStream.streamError)
             break
         case Stream.Event.endEncountered:
-            delegate?.mqttErrorOccurred(in: self, error: aStream.streamError)
+			if aStream.streamError != nil {
+				delegate?.mqttErrorOccurred(in: self, error: aStream.streamError)
+			}
             break
         case Stream.Event.hasSpaceAvailable:
             let wasReady = inputReady && outputReady
