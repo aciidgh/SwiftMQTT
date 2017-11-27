@@ -6,9 +6,14 @@
 //  Copyright © 2015 Ankit. All rights reserved.
 //
 
+/*
+OCI Changes:
+    Changed to struct (no-polymorphic, no-shared, immutable)
+*/
+
 import Foundation
 
-class MQTTPacketFixedHeader {
+struct MQTTPacketFixedHeader {
     
     let packetType: MQTTPacketType
     let flags: UInt8

@@ -31,22 +31,22 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
         view.addGestureRecognizer(tapGesture)
     }
     
-    func hideKeyboard() {
+    @objc func hideKeyboard() {
         view.endEditing(true)
     }
     
-    func keyboardWillShow(_ notification: Notification) {
+    @objc func keyboardWillShow(_ notification: Notification) {
         let userInfo = (notification as NSNotification).userInfo! as NSDictionary
         let kbHeight = (userInfo.object(forKey: UIKeyboardFrameBeginUserInfoKey) as! NSValue).cgRectValue.size.height
         bottomConstraint.constant = kbHeight
     }
     
-    func keyboardWillHide(_ notification: Notification) {
+    @objc func keyboardWillHide(_ notification: Notification) {
         bottomConstraint.constant = 0
     }
     
     func establishConnection() {
-        let host = "localhost"
+        let host = "broker.hivemq.com"
         let port: UInt16 = 1883
         let clientID = self.clientID()
         
@@ -54,9 +54,11 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
         mqttSession.delegate = self
         appendStringToTextView("Trying to connect to \(host) on port \(port) for clientID \(clientID)")
 
-        mqttSession.connect {
-            if !$0 {
-                self.appendStringToTextView("Error Occurred During connection \($1)")
+        
+        mqttSession.connect { (success, error) in
+            
+            guard success else {
+                self.appendStringToTextView("Error Occurred During connection \(error?.localizedDescription ?? "unkown")")
                 return
             }
             self.appendStringToTextView("Connected.")
@@ -66,33 +68,33 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     
     func subscribeToChannel() {
         let subChannel = "/#"
-        mqttSession.subscribe(to: subChannel, delivering: .atMostOnce) {
-            if !$0 {
-                self.appendStringToTextView("Error Occurred During subscription \($1)")
+        
+        mqttSession.subscribe(to: subChannel, delivering: .atMostOnce) { (success, error) in
+            guard success else {
+                self.appendStringToTextView("Error Occurred During connection \(error?.localizedDescription ?? "unkown")")
                 return
             }
+            
             self.appendStringToTextView("Subscribed to \(subChannel)")
         }
     }
     
     func appendStringToTextView(_ string: String) {
-        textView.text = "\(textView.text ?? "")\n\(string)"
-        let range = NSMakeRange(textView.text.characters.count - 1, 1)
-        textView.scrollRangeToVisible(range)
+
+         DispatchQueue.main.async {
+            self.textView.text = "\(self.textView.text ?? "")\n\(string)"
+            let range = NSMakeRange(self.textView.text.count - 1, 1)
+            self.textView.scrollRangeToVisible(range)
+        }
     }
     
     // MARK: - MQTTSessionDelegates
 
-    func mqttSession(session: MQTTSession, received message: Data, in topic: String) {
-		let string = String(data: message, encoding: .utf8)!
-        appendStringToTextView("data received on topic \(topic) message \(string)")
+    func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
+        appendStringToTextView("data received on topic \(message.topic) message \(message.stringRep ?? "<>")")
     }
     
-    func mqttSocketErrorOccurred(session: MQTTSession) {
-        appendStringToTextView("Socket Error")
-    }
-    
-    func mqttDidDisconnect(session: MQTTSession) {
+    func mqttDidDisconnect(session: MQTTSession, reson: MQTTSessionDisconnect, error: Error?) {
         appendStringToTextView("Session Disconnected.")
     }
     
@@ -112,14 +114,15 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
 			else { return }
 		
 		let data = message.data(using: .utf8)!
-		mqttSession.publish(data, in: channel, delivering: .atMostOnce, retain: false) {
-			if !$0 {
-				self.appendStringToTextView("Error Occurred During Publish \($1)")
-				return
-			}
-			self.appendStringToTextView("Published \(message) on channel \(channel)")
-		}
-	}
+        
+        mqttSession.publish(data, in: channel, delivering: .atMostOnce, retain: false) { success, error in
+            guard success else {
+                self.appendStringToTextView("Error Occurred During connection \(error?.localizedDescription ?? "unkown")")
+                return
+            }
+            self.appendStringToTextView("Published \(message) on channel \(channel)")
+        }
+    }
 	
     // MARK: - Utilities
 	
