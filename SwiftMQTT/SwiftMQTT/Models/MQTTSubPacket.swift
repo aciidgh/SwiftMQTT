@@ -6,6 +6,11 @@
 //  Copyright © 2015 Ankit. All rights reserved.
 //
 
+/*
+OCI Changes:
+    Preallocate Data to avoid low-level realloc calls
+*/
+
 import Foundation
 
 class MQTTSubPacket: MQTTPacket {
@@ -25,7 +30,7 @@ class MQTTSubPacket: MQTTPacket {
         variableHeader.mqtt_append(messageID)
         
         // Payload
-        var payload = Data()
+        var payload = Data(capacity: 1024)
         
         for (key, value) in topics {
             payload.mqtt_append(key)

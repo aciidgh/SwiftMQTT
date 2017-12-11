@@ -79,7 +79,7 @@ extension Data {
     }
     
     mutating func mqtt_append(_ string: String) {
-        mqtt_append(UInt16(string.characters.count))
+        mqtt_append(UInt16(string.count))
         append(string.data(using: .utf8)!)
     }
 }

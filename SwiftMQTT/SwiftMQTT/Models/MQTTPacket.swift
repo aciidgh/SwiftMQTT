@@ -6,6 +6,11 @@
 //  Copyright © 2015 Ankit. All rights reserved.
 //
 
+/*
+OCI Changes:
+    Preallocate Data to avoid low-level realloc calls
+*/
+
 import Foundation
 
 class MQTTPacket {
@@ -27,7 +32,7 @@ class MQTTPacket {
         var remainingData = variableHeader
         remainingData.append(payload)
         
-        var finalPacket = Data()
+        var finalPacket = Data(capacity: 1024)
         finalPacket.append(header.networkPacket())
         finalPacket.mqtt_encodeRemaining(length: remainingData.count) // Remaining Length
         finalPacket.append(remainingData) // Remaining Data = Variable Header + Payload

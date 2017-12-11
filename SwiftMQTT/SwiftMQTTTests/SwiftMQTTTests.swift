@@ -19,9 +19,6 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
 		
         mqttSession = MQTTSession(host: "localhost", port: 1883, clientID: "swift", cleanSession: true, keepAlive: 15)
         mqttSession.delegate = self
-        mqttSession.connect { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error)")
-        }
     }
     
     override func tearDown() {
@@ -30,10 +27,12 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
     }
     
     func testSuccessfulConnection() {
+        
+        let expectation = self.expectation(description: "Connection Establishment")
+        
         mqttSession.disconnect()
-		let expectation = self.expectation(description: "Connection Establishment")
-        mqttSession.connect {
-            XCTAssertTrue($0, "could not connect, error \($1)")
+        mqttSession.connect { succeeded, error in
+            XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknwon"))")
             expectation.fulfill()
         }
         waitForExpectations(timeout: 5) { error in
@@ -44,17 +43,23 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
     }
 
     func testSubscribe() {
-        let expectation = self.expectation(description: "Subscribe")
         
-        mqttSession.subscribe(to: "/hey/cool", delivering: .atLeastOnce) { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error)")
-            expectation.fulfill()
+        let expectation = self.expectation(description: "Subscribe")
+
+        mqttSession?.disconnect()
+        mqttSession?.connect { succeeded, error in
+            self.mqttSession?.subscribe(to: "/hey/cool", delivering: .atLeastOnce) { (succeeded, error) -> Void in
+                XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknown")")
+                expectation.fulfill()
+            }
         }
+        
         waitForExpectations(timeout: 5) { error in
             if let error = error {
                 print("Error:", error.localizedDescription)
             }
         }
+        
     }
     
     func testMultiSubscribe() {
@@ -63,11 +68,17 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
             "/yo/sup": MQTTQoS.atMostOnce,
             "/yo/ok": MQTTQoS.exactlyOnce,
         ]
+        
         let expectation = self.expectation(description: "Multi Subscribe")
-        mqttSession.subscribe(to: channels) { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error)")
-            expectation.fulfill()
+        
+        mqttSession?.disconnect()
+        mqttSession?.connect { (succeeded, error) -> Void in
+            self.mqttSession?.subscribe(to: channels) { succeeded, error in
+                XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknwon")")
+                expectation.fulfill()
+            }
         }
+        
         waitForExpectations(timeout: 5) { error in
             if let error = error {
                 print("Error:", error.localizedDescription)
@@ -113,9 +124,14 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
     
     func testUnSubscribe() {
         let expectation = self.expectation(description: "unSubscribe")
-        mqttSession.unSubscribe(from: ["/hey/cool", "/no/ok"]) { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error)")
-            expectation.fulfill()
+        
+        mqttSession?.disconnect()
+        mqttSession?.connect { (succeeded, error) -> Void in
+            
+            self.mqttSession?.unSubscribe(from: ["/hey/cool", "/no/ok"]) { succeeded, error in
+                XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknwon")")
+                expectation.fulfill()
+            }
         }
         waitForExpectations(timeout: 5) { error in
             if let error = error {
@@ -126,9 +142,13 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
     
     func testMultiUnSubscribe() {
         let expectation = self.expectation(description: "Multi unSubscribe")
-        mqttSession.unSubscribe(from: "/hey/cool") { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error)")
-            expectation.fulfill()
+        
+        mqttSession?.disconnect()
+        mqttSession?.connect { (succeeded, error) -> Void in
+            self.mqttSession?.unSubscribe(from: "/hey/cool") { succeeded, error in
+                XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unkmown")")
+                expectation.fulfill()
+            }
         }
         waitForExpectations(timeout: 5) { error in
             if let error = error {
@@ -142,9 +162,12 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
         let jsonDict = ["hey" : "sup"]
 		let data = try! JSONSerialization.data(withJSONObject: jsonDict, options: .prettyPrinted)
         
-        mqttSession.publish(data, in: "/hey/wassap", delivering: .atLeastOnce, retain: false) { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error)")
-            expectation.fulfill()
+        mqttSession?.disconnect()
+        mqttSession?.connect { succeeded, error in
+            self.mqttSession?.publish(data, in: "/hey/wassap", delivering: .atLeastOnce, retain: false) { (succeeded, error) -> Void in
+                XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknown")")
+                expectation.fulfill()
+            }
         }
         waitForExpectations(timeout: 5) { error in
             if let error = error {
@@ -155,17 +178,12 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
 	
     // MARK: MQTTSessionProtocol
     
-    func mqttDidReceive(message data: Data, in topic: String, from session: MQTTSession) {
-        let stringData = String(data: data, encoding: .utf8)
-        print("received:", stringData, "in:", topic)
+    func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
+        print("received:", message.stringRep ?? "<>", "in:", message.topic)
     }
     
-    func mqttDidDisconnect(session: MQTTSession) {
+    func mqttDidDisconnect(session: MQTTSession, reson: MQTTSessionDisconnect, error: Error?) {
         print("did disconnect")
-    }
-    
-    func mqttSocketErrorOccurred(session: MQTTSession) {
-        print("socket error")
     }
 
 }
