@@ -151,8 +151,8 @@ extension MQTTReconnectingSession: MQTTSessionDelegate {
 		self.delegate?.mqttDidReceive(message: message, from: self)
     }
 
-    public func mqttDidDisconnect(session: MQTTSession, reson: MQTTSessionDisconnect, error: Error?) {
-        if reson == .unexpected && connectParams.keepAlive > 0 {
+    public func mqttDidDisconnect(session: MQTTSession, reason: MQTTSessionDisconnect, error: Error?) {
+        if reason == .unexpected && connectParams.keepAlive > 0 {
             disconnect()
             connectResuscitate(nil)
         }

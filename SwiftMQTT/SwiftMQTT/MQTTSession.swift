@@ -33,7 +33,7 @@ public enum MQTTSessionDisconnect {
 
 public protocol MQTTSessionDelegate: class {
     func mqttDidReceive(message: MQTTMessage, from session: MQTTSession)
-    func mqttDidDisconnect(session: MQTTSession, reson: MQTTSessionDisconnect, error: Error?)
+    func mqttDidDisconnect(session: MQTTSession, reason: MQTTSessionDisconnect, error: Error?)
 }
 
 public typealias MQTTSessionCompletionBlock = (_ succeeded: Bool, _ error: Error?) -> Void
@@ -123,10 +123,10 @@ open class MQTTSession: MQTTBroker {
         cleanupDisconnection(.manual, nil)
     }
     
-    fileprivate func cleanupDisconnection(_ reson: MQTTSessionDisconnect, _ error: Error?) {
+    fileprivate func cleanupDisconnection(_ reason: MQTTSessionDisconnect, _ error: Error?) {
         stream = nil
         keepAliveTimer?.cancel()
-		delegate?.mqttDidDisconnect(session: self, reson: reson, error: error)
+		delegate?.mqttDidDisconnect(session: self, reason: reason, error: error)
     }
     
     @discardableResult
