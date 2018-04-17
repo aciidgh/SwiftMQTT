@@ -6,12 +6,6 @@
 //  Copyright © 2015 Ankit. All rights reserved.
 //
 
-/*
-OCI Changes:
-    Preallocate Data to avoid low-level realloc calls
-    Breakdown networkPacket() into overridable methods
-*/
-
 import Foundation
 
 class MQTTPacket {

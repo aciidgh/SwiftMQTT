@@ -6,18 +6,6 @@
 //  Copyright © 2015 Ankit. All rights reserved.
 //
 
-/*
-OCI Changes:
-    Bug Fix - do not handshake until ports are ready
-    Changed name of file to match primary class
-    Propagate error object to delegate
-    Make MQTTSessionStreamDelegate var weak
-    MQTTSessionStream is now not recycled (RAII design pattern)
-	Move the little bit of parsing out of this class. This only manages the stream.
-    Always use dedicated queue for streams
-    Remove all MQTT model dependencies
-*/
-
 import Foundation
 
 protocol MQTTSessionStreamDelegate: class {

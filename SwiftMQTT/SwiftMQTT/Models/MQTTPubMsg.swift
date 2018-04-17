@@ -8,11 +8,6 @@
 
 import Foundation
 
-/*
-OCI Changes:
-    Changed to struct (no-polymorphic, no-shared, immutable)
-*/
-
 public struct MQTTPubMsg {
     
     public let topic: String

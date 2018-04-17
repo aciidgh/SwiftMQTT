@@ -8,13 +8,6 @@
 
 import Foundation
 
-/*
-OCI Changes:
-    Optimizations to receiveDataOnStream
-    Fixed bugs where read/writes needed to be in loops
-    Handle more unhappy paths
-*/
-
 typealias StreamReader = (_ buffer: UnsafeMutablePointer<UInt8>, _ len: Int) -> Int
 typealias StreamWriter = (_ buffer: UnsafePointer<UInt8>, _ len: Int) -> Int
 

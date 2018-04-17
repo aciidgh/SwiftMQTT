@@ -6,23 +6,6 @@
 //  Copyright © 2015 Ankit. All rights reserved.
 //
 
-/*
-OCI Changes:
-    Bug Fix - do not MQTT connect until ports are ready
-    Encapsulate mqttDidReceive params into MQTTMessage struct
-    Propagate error objects to delegate
-    Single delegate call on errored disconnect
-    Optimization in callSuccessCompletionBlock
-    Move MQTTSessionStreamDelegate adherence to extension
-    Make MQTTSessionDelegate var weak
-    Adhere to MQTTBroker
-    Make deinit force disconnect
-    MQTTSessionStream is now not recycled (RAII design pattern)
-    Move all packet parsing into model classes
-    Replace main thread obj-c timer with background GCD time
-    message ids cannot be static if app has multiple MQTTSessions
-*/
-
 import Foundation
 
 public enum MQTTSessionDisconnect {

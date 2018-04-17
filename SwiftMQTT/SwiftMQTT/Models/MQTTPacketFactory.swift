@@ -8,13 +8,6 @@
 
 import Foundation
 
-/*
-OCI Changes:
-    Moved from Session
-    Do both marshal and unmarshal of MQTTPacket
-    Move stream read/write loops into MQTTStreamable
-*/
-
 struct MQTTPacketFactory {
 
     let constructors: [MQTTPacketType : (MQTTPacketFixedHeader, Data)->MQTTPacket] = [

@@ -8,11 +8,6 @@
 
 import Foundation
 
-/*
-OCI Changes:
-    Breakdown networkPacket() into overridable methods
-*/
-
 class MQTTPingPacket: MQTTPacket {
     
     init() {

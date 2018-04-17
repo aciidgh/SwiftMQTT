@@ -8,12 +8,6 @@
 
 import Foundation
 
-/*
-OCI Changes:
-    Preallocate Data to avoid low-level realloc calls
-    Breakdown networkPacket() into overridable methods
-*/
-
 class MQTTPublishPacket: MQTTPacket {
 
     let messageID: UInt16
