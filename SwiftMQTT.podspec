@@ -13,6 +13,8 @@ Pod::Spec.new do |s|
     s.author       = { "Ankit Agarwal" => "ankit.spd@gmail.com" }
     s.source       = { :git => "https://github.com/aciidb0mb3r/SwiftMQTT.git", :tag => s.version.to_s }
     
+    s.swift_version = "4.1"
+
     s.ios.deployment_target = "8.0"
     s.osx.deployment_target = "10.10"
     s.tvos.deployment_target = "9.0"
