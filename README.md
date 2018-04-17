@@ -66,7 +66,7 @@ mqttSession.delegate = self
 ```
 ```swift
 func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
-	let string = message.description
+	let string = message.stringRepresentation
 }
 ```
 ```swift
