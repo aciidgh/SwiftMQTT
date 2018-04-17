@@ -16,7 +16,7 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
     
     override func setUp() {
         super.setUp()
-		
+
         mqttSession = MQTTSession(host: "localhost", port: 1883, clientID: "swift", cleanSession: true, keepAlive: 15)
         mqttSession.delegate = self
         mqttSession.connect { (succeeded, error) -> Void in
@@ -152,14 +152,14 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
             }
         }
     }
-	
+
     // MARK: MQTTSessionProtocol
     
     func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
-        print("received:", message.payload.stringRep ?? "<>", "in:", message.topic)
+        print("received:", message.stringRepresentation ?? "<>", "in:", message.topic)
     }
     
-    func mqttDidDisconnect(session: MQTTSession, reson: MQTTSessionDisconnect, error: Error?) {
+    func mqttDidDisconnect(session: MQTTSession, reason: MQTTSessionDisconnect, error: Error?) {
         print("did disconnect")
     }
 
