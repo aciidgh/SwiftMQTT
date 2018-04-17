@@ -31,9 +31,9 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
     
     func testSuccessfulConnection() {
         mqttSession.disconnect()
-		let expectation = self.expectation(description: "Connection Establishment")
+        let expectation = self.expectation(description: "Connection Establishment")
         mqttSession.connect { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknwon"))")
+            XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknown"))")
             expectation.fulfill()
         }
         waitForExpectations(timeout: 5) { error in
@@ -47,7 +47,7 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
         let expectation = self.expectation(description: "Subscribe")
         
         mqttSession.subscribe(to: "/hey/cool", delivering: .atLeastOnce) { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknwon")")
+            XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknown")")
             expectation.fulfill()
         }
         waitForExpectations(timeout: 5) { error in
@@ -65,7 +65,7 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
         ]
         let expectation = self.expectation(description: "Multi Subscribe")
         mqttSession.subscribe(to: channels) { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknwon")")
+            XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknown")")
             expectation.fulfill()
         }
         waitForExpectations(timeout: 5) { error in
@@ -94,7 +94,7 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
         
         let nonretainFlag = nonretainPubPacket.header.flags & 0x01
         
-        XCTAssert(nonretainFlag == 0, "Header retenion bit should not be set")
+        XCTAssert(nonretainFlag == 0, "Header retention bit should not be set")
         
         let qos1 = (nonretainPubPacket.header.flags & 0x06) >> 1
         
@@ -114,7 +114,7 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
     func testUnSubscribe() {
         let expectation = self.expectation(description: "unSubscribe")
         mqttSession.unSubscribe(from: ["/hey/cool", "/no/ok"]) { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknwon")")
+            XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknown")")
             expectation.fulfill()
         }
         waitForExpectations(timeout: 5) { error in
@@ -127,7 +127,7 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
     func testMultiUnSubscribe() {
         let expectation = self.expectation(description: "Multi unSubscribe")
         mqttSession.unSubscribe(from: "/hey/cool") { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknwon")")
+            XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknown")")
             expectation.fulfill()
         }
         waitForExpectations(timeout: 5) { error in
@@ -140,10 +140,10 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
     func testPublishData() {
         let expectation = self.expectation(description: "Publish")
         let jsonDict = ["hey" : "sup"]
-		let data = try! JSONSerialization.data(withJSONObject: jsonDict, options: .prettyPrinted)
+        let data = try! JSONSerialization.data(withJSONObject: jsonDict, options: .prettyPrinted)
         
         mqttSession.publish(data, in: "/hey/wassap", delivering: .atLeastOnce, retain: false) { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknwon")")
+            XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknown")")
             expectation.fulfill()
         }
         waitForExpectations(timeout: 5) { error in
