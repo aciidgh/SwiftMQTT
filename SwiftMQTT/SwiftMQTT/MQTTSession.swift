@@ -37,9 +37,9 @@ open class MQTTSession: MQTTBroker {
     open var lastWillMessage: MQTTPubMsg?
 
     open weak var delegate: MQTTSessionDelegate?
-	
-    fileprivate var keepAliveTimer: DispatchSourceTimer!
-    fileprivate var connectionCompletionBlock: MQTTSessionCompletionBlock?
+
+    private var keepAliveTimer: DispatchSourceTimer?
+    private var connectionCompletionBlock: MQTTSessionCompletionBlock?
     private var messagesCompletionBlocks = [UInt16: MQTTSessionCompletionBlock]()
     fileprivate var factory: MQTTPacketFactory
     
@@ -187,11 +187,11 @@ extension MQTTSession: MQTTSessionStreamDelegate {
 			}
 			
 			keepAliveTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
-			keepAliveTimer.scheduleRepeating(deadline: .now() + .seconds(Int(keepAlive)), interval: .seconds(Int(keepAlive)), leeway: .seconds(1))
-			keepAliveTimer.setEventHandler { [weak self] in
+			keepAliveTimer!.schedule(deadline: .now() + .seconds(Int(keepAlive)), repeating: .seconds(Int(keepAlive)), leeway: .seconds(1))
+			keepAliveTimer!.setEventHandler { [weak self] in
 				self?.keepAliveTimerFired()
 			}
-			keepAliveTimer.resume()
+			keepAliveTimer!.resume()
 		}
 		else {
 			cleanupDisconnection(.failedConnect, nil)
