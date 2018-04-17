@@ -49,7 +49,7 @@ public class MQTTDatedSnapshot<T> {
 		self.dispatch = dispatch
 		
 		sendTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
-		sendTimer.scheduleRepeating(deadline: .now() + interval, interval: interval)
+		sendTimer.schedule(deadline: .now() + interval, repeating: interval)
 		sendTimer.setEventHandler { [weak self] in
 			self?.sendNow()
 		}
