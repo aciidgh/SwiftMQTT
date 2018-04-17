@@ -8,6 +8,11 @@
 
 import Foundation
 
+/*
+OCI Changes:
+    Breakdown networkPacket() into overridable methods
+*/
+
 class MQTTPubAck: MQTTPacket {
     
     let messageID: UInt16
@@ -17,18 +22,14 @@ class MQTTPubAck: MQTTPacket {
         super.init(header: MQTTPacketFixedHeader(packetType: MQTTPacketType.pubAck, flags: 0))
     }
     
-    override func networkPacket() -> Data {
-        // Variable Header
+    override func variableHeader() -> Data {
         var variableHeader = Data()
         variableHeader.mqtt_append(messageID)
-        
-        return finalPacket(variableHeader, payload: Data())
+        return variableHeader
     }
     
     init(header: MQTTPacketFixedHeader, networkData: Data) {
-        
         messageID = (UInt16(networkData[0]) * UInt16(256)) + UInt16(networkData[1])
-        
         super.init(header: header)
     }
 }

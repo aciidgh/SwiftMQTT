@@ -83,16 +83,11 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     
     // MARK: - MQTTSessionDelegates
 
-    func mqttSession(session: MQTTSession, received message: Data, in topic: String) {
-		let string = String(data: message, encoding: .utf8)!
-        appendStringToTextView("data received on topic \(topic) message \(string)")
+    func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
+        appendStringToTextView("data received on topic \(message.topic) message \(message.stringRep ?? "<>")")
     }
     
-    func mqttSocketErrorOccurred(session: MQTTSession) {
-        appendStringToTextView("Socket Error")
-    }
-    
-    func mqttDidDisconnect(session: MQTTSession) {
+    func mqttDidDisconnect(session: MQTTSession, reson: MQTTSessionDisconnect, error: Error?) {
         appendStringToTextView("Session Disconnected.")
     }
     
