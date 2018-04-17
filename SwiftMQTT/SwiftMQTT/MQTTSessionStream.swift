@@ -19,10 +19,10 @@ class MQTTSessionStream: NSObject {
     fileprivate let inputStream: InputStream?
     fileprivate let outputStream: OutputStream?
     fileprivate weak var delegate: MQTTSessionStreamDelegate?
-	private var sessionQueue: DispatchQueue
-	
-	fileprivate var inputReady = false
-	fileprivate var outputReady = false
+    private var sessionQueue: DispatchQueue
+
+    fileprivate var inputReady = false
+    fileprivate var outputReady = false
     
     init(host: String, port: UInt16, ssl: Bool, timeout: TimeInterval, delegate: MQTTSessionStreamDelegate?) {
         var inputStream: InputStream?
@@ -53,11 +53,11 @@ class MQTTSessionStream: NSObject {
                 inputStream?.setProperty(securityLevel, forKey: Stream.PropertyKey.socketSecurityLevelKey)
                 outputStream?.setProperty(securityLevel, forKey: Stream.PropertyKey.socketSecurityLevelKey)
             }
-			if timeout > 0 {
-				DispatchQueue.global().asyncAfter(deadline: .now() +  timeout) {
-					self?.connectTimeout()
-				}
-			}
+            if timeout > 0 {
+                DispatchQueue.global().asyncAfter(deadline: .now() +  timeout) {
+                    self?.connectTimeout()
+                }
+            }
             currentRunLoop.run()
         }
     }
@@ -70,17 +70,17 @@ class MQTTSessionStream: NSObject {
     }
     
     var write: StreamWriter? {
-		if let outputStream = outputStream, outputReady {
-			return outputStream.write
-		}
+        if let outputStream = outputStream, outputReady {
+            return outputStream.write
+        }
         return nil
     }
-	
-	internal func connectTimeout() {
-		if inputReady == false || outputReady == false {
-			delegate?.mqttReady(false, in: self)
-		}
-	}
+
+    internal func connectTimeout() {
+        if inputReady == false || outputReady == false {
+            delegate?.mqttReady(false, in: self)
+        }
+    }
 }
 
 extension MQTTSessionStream: StreamDelegate {
@@ -108,9 +108,9 @@ extension MQTTSessionStream: StreamDelegate {
             delegate?.mqttErrorOccurred(in: self, error: aStream.streamError)
             break
         case Stream.Event.endEncountered:
-			if aStream.streamError != nil {
-				delegate?.mqttErrorOccurred(in: self, error: aStream.streamError)
-			}
+            if aStream.streamError != nil {
+                delegate?.mqttErrorOccurred(in: self, error: aStream.streamError)
+            }
             break
         case Stream.Event.hasSpaceAvailable:
             let wasReady = inputReady && outputReady

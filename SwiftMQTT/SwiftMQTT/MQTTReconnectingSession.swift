@@ -14,8 +14,8 @@ public protocol MQTTReconnectingSessionDelegate: class {
 }
 
 /*
-    TODO: encapsulate credentials
-*/
+ TODO: encapsulate credentials
+ */
 
 public struct MQTTCredentials {
     // username, password, useSSL, certs, lastWill
@@ -31,7 +31,7 @@ public struct MQTTConnectParams {
     public var cleanSession: Bool = true
     public var keepAlive: UInt16 = 15
     public var useSSL: Bool = false
-	
+
     public var timeout: TimeInterval = 1.0
     public var retryCount: Int = 3
     public var retryTimeInterval: TimeInterval = 1.0
@@ -41,13 +41,13 @@ public struct MQTTConnectParams {
 public extension MQTTSession {
     public convenience init(connectParams: MQTTConnectParams) {
         self.init(
-			host: connectParams.host,
-			port: connectParams.port,
-			clientID: connectParams.clientID,
-			cleanSession: connectParams.cleanSession,
-			keepAlive: connectParams.keepAlive,
-			connectionTimeout: connectParams.timeout,
-			useSSL: connectParams.useSSL)
+            host: connectParams.host,
+            port: connectParams.port,
+            clientID: connectParams.clientID,
+            cleanSession: connectParams.cleanSession,
+            keepAlive: connectParams.keepAlive,
+            connectionTimeout: connectParams.timeout,
+            useSSL: connectParams.useSSL)
     }
 }
 
@@ -64,7 +64,7 @@ public class MQTTReconnectingSession: MQTTBroker {
     }
     
     public func connect(completion: MQTTSessionCompletionBlock? = nil) {
-		let session = MQTTSession(connectParams: connectParams)
+        let session = MQTTSession(connectParams: connectParams)
         self.session = session
         session.delegate = self
         self.connectWithRetry(0, nil, completion)
@@ -84,30 +84,30 @@ public class MQTTReconnectingSession: MQTTBroker {
     
     public func disconnect() {
         self.session = nil
-		self.delegate?.mqttConnected(false, for: self, error: nil)
+        self.delegate?.mqttConnected(false, for: self, error: nil)
     }
 }
 
 extension MQTTReconnectingSession {
     fileprivate func connectWithRetry(_ attempt: Int, _ error: Error?, _ completion: MQTTSessionCompletionBlock?) {
-		if let session = session {
-			session.connect { [weak self] success, newError in
-				if success {
-					completion?(success, newError)
-					if let inform = self {
-						inform.delegate?.mqttConnected(true, for: inform, error: newError ?? error)
-					}
-				}
-				else if let retry = self {
-					retry.doRetry(attempt, newError ?? error, completion)
-				}
-				else {
-					completion?(false, newError ?? error)
-				}
-			}
-		}
-		else {
-		}
+        if let session = session {
+            session.connect { [weak self] success, newError in
+                if success {
+                    completion?(success, newError)
+                    if let inform = self {
+                        inform.delegate?.mqttConnected(true, for: inform, error: newError ?? error)
+                    }
+                }
+                else if let retry = self {
+                    retry.doRetry(attempt, newError ?? error, completion)
+                }
+                else {
+                    completion?(false, newError ?? error)
+                }
+            }
+        }
+        else {
+        }
     }
     
     private func doRetry(_ attempt: Int, _ error: Error?, _ completion: MQTTSessionCompletionBlock?) {
@@ -125,30 +125,30 @@ extension MQTTReconnectingSession {
     fileprivate func connectResuscitate(_ completion: MQTTSessionCompletionBlock?) {
         if connectParams.keepAlive > 0 {
             DispatchQueue.global().asyncAfter(deadline: .now() + connectParams.resuscitateTimeInterval) { [weak self] in
-				self?.doResuscitate(completion)
+                self?.doResuscitate(completion)
             }
         }
     }
-	
-	private func doResuscitate(_ completion: MQTTSessionCompletionBlock?) {
-		self.connect { [weak self] success, newError in
-			if success {
-				completion?(success, newError)
-			}
-			else if let retry = self {
-				retry.connectResuscitate(completion)
-			}
-			else {
-				completion?(false, newError)
-			}
-		}
-	}
+
+    private func doResuscitate(_ completion: MQTTSessionCompletionBlock?) {
+        self.connect { [weak self] success, newError in
+            if success {
+                completion?(success, newError)
+            }
+            else if let retry = self {
+                retry.connectResuscitate(completion)
+            }
+            else {
+                completion?(false, newError)
+            }
+        }
+    }
 }
 
 extension MQTTReconnectingSession: MQTTSessionDelegate {
 
     public func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
-		self.delegate?.mqttDidReceive(message: message, from: self)
+        self.delegate?.mqttDidReceive(message: message, from: self)
     }
 
     public func mqttDidDisconnect(session: MQTTSession, reason: MQTTSessionDisconnect, error: Error?) {

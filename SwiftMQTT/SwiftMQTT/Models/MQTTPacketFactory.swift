@@ -30,7 +30,7 @@ struct MQTTPacketFactory {
     func parse(_ read: StreamReader) -> MQTTPacket? {
         var headerByte: UInt8 = 0
         let len = read(&headerByte, 1)
-		guard len > 0 else { return nil }
+        guard len > 0 else { return nil }
         let header = MQTTPacketFixedHeader(networkByte: headerByte)
         if let len = Data.readPackedLength(from: read) {
             if let data = Data(len: len, from: read) {
