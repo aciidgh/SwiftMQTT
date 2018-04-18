@@ -13,23 +13,33 @@ import Foundation
 class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
     
     var mqttSession: MQTTSession!
-    
+
     override func setUp() {
         super.setUp()
 
-        mqttSession = MQTTSession(host: "localhost", port: 1883, clientID: "swift", cleanSession: true, keepAlive: 15)
+        mqttSession = MQTTSession(host: "localhost", port: 1883, clientID: "swift", cleanSession: true, keepAlive: 15, useSSL: false)
         mqttSession.delegate = self
+
+        let expectation = self.expectation(description: "Connection Establishment")
         mqttSession.connect { (succeeded, error) -> Void in
             XCTAssertTrue(succeeded, "could not connect, error \(String(describing: error))")
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 5) { error in
+            if let error = error {
+                print("Error:", error.localizedDescription)
+            }
         }
     }
-    
+
     override func tearDown() {
         super.tearDown()
+
         mqttSession.disconnect()
     }
     
-    func testSuccessfulConnection() {
+    func testSuccessfulReconnection() {
         mqttSession.disconnect()
         let expectation = self.expectation(description: "Connection Establishment")
         mqttSession.connect { (succeeded, error) -> Void in
@@ -62,7 +72,7 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
             "/#": MQTTQoS.atLeastOnce,
             "/yo/sup": MQTTQoS.atMostOnce,
             "/yo/ok": MQTTQoS.exactlyOnce,
-        ]
+            ]
         let expectation = self.expectation(description: "Multi Subscribe")
         mqttSession.subscribe(to: channels) { (succeeded, error) -> Void in
             XCTAssertTrue(succeeded, "could not connect, error \(error?.localizedDescription ?? "unknown")")
