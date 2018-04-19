@@ -78,7 +78,6 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
         textView.text = "\(textView.text ?? "")\n\(string)"
         let range = NSMakeRange(textView.text.count - 1, 1)
         textView.scrollRangeToVisible(range)
-        }
     }
     
     // MARK: - MQTTSessionDelegates
