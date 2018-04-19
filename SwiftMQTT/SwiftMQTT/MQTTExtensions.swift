@@ -8,9 +8,11 @@
 
 import Foundation
 
-enum MQTTSessionError: Error {
+public enum MQTTSessionError: Error {
     case none
     case socketError
+    case connectionError(MQTTConnAckResponse)
+    case streamError(Error?)
 }
 
 enum MQTTPacketType: UInt8 {
@@ -36,7 +38,7 @@ public enum MQTTQoS: UInt8 {
     case exactlyOnce    = 0x02
 }
 
-enum MQTTConnAckResponse: UInt8, Error {
+public enum MQTTConnAckResponse: UInt8, Error {
     case connectionAccepted     = 0x00
     case badProtocol            = 0x01
     case clientIDRejected       = 0x02
@@ -46,7 +48,6 @@ enum MQTTConnAckResponse: UInt8, Error {
 }
 
 extension Data {
-    
     mutating func mqtt_encodeRemaining(length: Int) {
         var lengthOfRemainingData = length
         repeat {

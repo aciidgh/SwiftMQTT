@@ -8,18 +8,12 @@
 
 import Foundation
 
-public enum MQTTSessionDisconnect {
-	case manual
-	case failedConnect
-	case unexpected
-}
-
 public protocol MQTTSessionDelegate: class {
     func mqttDidReceive(message: MQTTMessage, from session: MQTTSession)
-    func mqttDidDisconnect(session: MQTTSession, reason: MQTTSessionDisconnect, error: Error?)
+    func mqttDidDisconnect(session: MQTTSession, error: MQTTSessionError)
 }
 
-public typealias MQTTSessionCompletionBlock = (_ succeeded: Bool, _ error: Error?) -> Void
+public typealias MQTTSessionCompletionBlock = (_ error: MQTTSessionError) -> Void
 
 open class MQTTSession: MQTTBroker {
 	
@@ -31,7 +25,7 @@ open class MQTTSession: MQTTBroker {
     open let cleanSession: Bool
     open let keepAlive: UInt16
     open let clientID: String
-    
+
     open var username: String?
     open var password: String?
     open var lastWillMessage: MQTTPubMsg?
@@ -67,10 +61,10 @@ open class MQTTSession: MQTTBroker {
         if send(publishPacket) {
             messagesCompletionBlocks[msgID] = completion
             if qos == .atMostOnce {
-                completion?(true, MQTTSessionError.none)
+                completion?(MQTTSessionError.none)
             }
         } else {
-            completion?(false, MQTTSessionError.socketError)
+            completion?(MQTTSessionError.socketError)
         }
     }
     
@@ -80,7 +74,7 @@ open class MQTTSession: MQTTBroker {
         if send(subscribePacket) {
             messagesCompletionBlocks[msgID] = completion
         } else {
-            completion?(false, MQTTSessionError.socketError)
+            completion?(MQTTSessionError.socketError)
         }
     }
     
@@ -90,45 +84,47 @@ open class MQTTSession: MQTTBroker {
         if send(unSubPacket) {
             messagesCompletionBlocks[msgID] = completion
         } else {
-            completion?(false, MQTTSessionError.socketError)
+            completion?(MQTTSessionError.socketError)
         }
     }
     
     open func connect(completion: MQTTSessionCompletionBlock?) {
-        // Open Stream
         connectionCompletionBlock = completion
         stream = MQTTSessionStream(host: host, port: port, ssl: useSSL, timeout: connectionTimeout, delegate: self)
     }
-    
+
     open func disconnect() {
         let disconnectPacket = MQTTDisconnectPacket()
         send(disconnectPacket)
-        cleanupDisconnection(.manual, nil)
+        cleanupDisconnection(.none)
     }
     
-    fileprivate func cleanupDisconnection(_ reason: MQTTSessionDisconnect, _ error: Error?) {
+    private func cleanupDisconnection(_ error: MQTTSessionError) {
         stream = nil
         keepAliveTimer?.cancel()
-		delegate?.mqttDidDisconnect(session: self, reason: reason, error: error)
+		delegate?.mqttDidDisconnect(session: self, error: error)
     }
-    
+
     @discardableResult
-    fileprivate func send(_ packet: MQTTPacket) -> Bool {
+    private func send(_ packet: MQTTPacket) -> Bool {
         if let write = stream?.write {
             let didWriteSuccessfully = factory.send(packet, write: write)
             if !didWriteSuccessfully {
-                cleanupDisconnection(.unexpected, nil)
+                cleanupDisconnection(.socketError)
             }
             return didWriteSuccessfully
         }
         return false
     }
     
-    fileprivate func handle(_ packet: MQTTPacket) {
+    private func handle(_ packet: MQTTPacket) {
         switch packet {
         case let connAckPacket as MQTTConnAckPacket:
-            let success = (connAckPacket.response == .connectionAccepted)
-            connectionCompletionBlock?(success, connAckPacket.response)
+            if connAckPacket.response == .connectionAccepted {
+                connectionCompletionBlock?(MQTTSessionError.none)
+            } else {
+                connectionCompletionBlock?(MQTTSessionError.connectionError(connAckPacket.response))
+            }
             connectionCompletionBlock = nil
         case let subAckPacket as MQTTSubAckPacket:
             callSuccessCompletionBlock(for: subAckPacket.messageID)
@@ -154,7 +150,7 @@ open class MQTTSession: MQTTBroker {
     
     private func callSuccessCompletionBlock(for messageId: UInt16) {
         let completionBlock = messagesCompletionBlocks.removeValue(forKey: messageId)
-        completionBlock?(true, MQTTSessionError.none)
+        completionBlock?(MQTTSessionError.none)
     }
     
     fileprivate func keepAliveTimerFired() {
@@ -182,7 +178,7 @@ extension MQTTSession: MQTTSessionStreamDelegate {
             connectPacket.lastWillMessage = lastWillMessage
 
             if send(connectPacket) == false {
-                connectionCompletionBlock?(false, MQTTSessionError.socketError)
+                connectionCompletionBlock?(MQTTSessionError.socketError)
                 connectionCompletionBlock = nil
             }
 
@@ -194,8 +190,8 @@ extension MQTTSession: MQTTSessionStreamDelegate {
             keepAliveTimer!.resume()
         }
         else {
-            cleanupDisconnection(.failedConnect, nil)
-            connectionCompletionBlock?(false, MQTTSessionError.socketError)
+            cleanupDisconnection(.socketError)
+            connectionCompletionBlock?(MQTTSessionError.socketError)
         }
     }
 
@@ -206,6 +202,6 @@ extension MQTTSession: MQTTSessionStreamDelegate {
     }
     
     func mqttErrorOccurred(in stream: MQTTSessionStream, error: Error?) {
-        cleanupDisconnection(.unexpected, error)
+        cleanupDisconnection(.streamError(error))
     }
 }
