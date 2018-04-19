@@ -16,13 +16,13 @@ protocol MQTTSessionStreamDelegate: class {
 
 class MQTTSessionStream: NSObject {
     
-    fileprivate let inputStream: InputStream?
-    fileprivate let outputStream: OutputStream?
-    fileprivate weak var delegate: MQTTSessionStreamDelegate?
+    private let inputStream: InputStream?
+    private let outputStream: OutputStream?
     private var sessionQueue: DispatchQueue
+    private weak var delegate: MQTTSessionStreamDelegate?
 
-    fileprivate var inputReady = false
-    fileprivate var outputReady = false
+    private var inputReady = false
+    private var outputReady = false
     
     init(host: String, port: UInt16, ssl: Bool, timeout: TimeInterval, delegate: MQTTSessionStreamDelegate?) {
         var inputStream: InputStream?

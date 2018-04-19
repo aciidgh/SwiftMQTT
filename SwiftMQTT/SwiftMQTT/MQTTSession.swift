@@ -36,11 +36,19 @@ open class MQTTSession: MQTTBroker {
     private var keepAliveTimer: DispatchSourceTimer?
     private var connectionCompletionBlock: MQTTSessionCompletionBlock?
     private var messagesCompletionBlocks = [UInt16: MQTTSessionCompletionBlock]()
-    fileprivate var factory: MQTTPacketFactory
+    private var factory: MQTTPacketFactory
     
     private var stream: MQTTSessionStream?
     
-    public init(host: String, port: UInt16, clientID: String, cleanSession: Bool, keepAlive: UInt16, connectionTimeout: TimeInterval = 1.0, useSSL: Bool = false) {
+    public init(
+        host: String,
+        port: UInt16,
+        clientID: String,
+        cleanSession: Bool,
+        keepAlive: UInt16,
+        connectionTimeout: TimeInterval = 5.0,
+        useSSL: Bool = false)
+    {
         self.factory = MQTTPacketFactory()
         self.host = host
         self.port = port
