@@ -29,14 +29,12 @@ class MQTTSessionStream: NSObject {
         var outputStream: OutputStream?
         Stream.getStreamsToHost(withName: host, port: Int(port), inputStream: &inputStream, outputStream: &outputStream)
         
-        var parts = host.components(separatedBy: ".")
-        parts.insert("stream\(port)", at: 0)
-        let label = parts.reversed().joined(separator: ".")
-        
-        self.sessionQueue = DispatchQueue(label: label, qos: .background, target: nil)
+        let queueLabel = host.components(separatedBy: ".").reversed().joined(separator: ".") + ".stream\(port)"
+        self.sessionQueue = DispatchQueue(label: queueLabel, qos: .background, target: nil)
         self.delegate = delegate
         self.inputStream = inputStream
         self.outputStream = outputStream
+
         super.init()
         
         inputStream?.delegate = self
@@ -50,8 +48,8 @@ class MQTTSessionStream: NSObject {
             outputStream?.open()
             if ssl {
                 let securityLevel = StreamSocketSecurityLevel.negotiatedSSL.rawValue
-                inputStream?.setProperty(securityLevel, forKey: Stream.PropertyKey.socketSecurityLevelKey)
-                outputStream?.setProperty(securityLevel, forKey: Stream.PropertyKey.socketSecurityLevelKey)
+                inputStream?.setProperty(securityLevel, forKey: .socketSecurityLevelKey)
+                outputStream?.setProperty(securityLevel, forKey: .socketSecurityLevelKey)
             }
             if timeout > 0 {
                 DispatchQueue.global().asyncAfter(deadline: .now() +  timeout) {
@@ -84,9 +82,11 @@ class MQTTSessionStream: NSObject {
 }
 
 extension MQTTSessionStream: StreamDelegate {
-    @objc
-    internal func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
+
+    @objc internal func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
+
         switch eventCode {
+
         case Stream.Event.openCompleted:
             let wasReady = inputReady && outputReady
             if aStream == inputStream {
@@ -98,20 +98,20 @@ extension MQTTSessionStream: StreamDelegate {
             if !wasReady && inputReady && outputReady {
                 delegate?.mqttReady(true, in: self)
             }
-            break
+
         case Stream.Event.hasBytesAvailable:
             if aStream == inputStream {
                 delegate?.mqttReceived(in: self, inputStream!.read)
             }
-            break
+
         case Stream.Event.errorOccurred:
             delegate?.mqttErrorOccurred(in: self, error: aStream.streamError)
-            break
+
         case Stream.Event.endEncountered:
             if aStream.streamError != nil {
                 delegate?.mqttErrorOccurred(in: self, error: aStream.streamError)
             }
-            break
+
         case Stream.Event.hasSpaceAvailable:
             let wasReady = inputReady && outputReady
             if aStream == outputStream {
@@ -120,7 +120,7 @@ extension MQTTSessionStream: StreamDelegate {
             if !wasReady && inputReady && outputReady {
                 delegate?.mqttReady(true, in: self)
             }
-            break
+
         default:
             break
         }
