@@ -84,3 +84,16 @@ extension Data {
         append(string.data(using: .utf8)!)
     }
 }
+
+extension MQTTSessionError: Equatable {
+    public static func ==(lhs: MQTTSessionError, rhs: MQTTSessionError) -> Bool {
+        switch (lhs, rhs) {
+        case (.none, .none), (.socketError, .socketError):
+            return true
+        case (.connectionError(let lhsResponse), .connectionError(let rhsResponse)):
+            return lhsResponse == rhsResponse
+        default:
+            return false
+        }
+    }
+}
