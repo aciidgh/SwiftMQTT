@@ -55,22 +55,27 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
         appendStringToTextView("Trying to connect to \(host) on port \(port) for clientID \(clientID)")
 
         mqttSession.connect { (succeeded, error) in
-
-            guard succeeded else {
-                return self.appendStringToTextView("Error Occurred During connection \(error?.localizedDescription as Any)")
+            DispatchQueue.main.async { [weak self] in
+                guard succeeded else {
+                    self?.appendStringToTextView("Error Occurred During connection \(error?.localizedDescription as Any)")
+                    return
+                }
+                self?.appendStringToTextView("Connected.")
+                self?.subscribeToChannel()
             }
-            self.appendStringToTextView("Connected.")
-            self.subscribeToChannel()
         }
     }
     
     func subscribeToChannel() {
         let subChannel = "/#"
         mqttSession.subscribe(to: subChannel, delivering: .atMostOnce) { (succeeded, error) in
-            guard succeeded else {
-                return self.appendStringToTextView("Error Occurred During subscription \(error?.localizedDescription as Any)")
+            DispatchQueue.main.async { [weak self] in
+                guard succeeded else {
+                    self?.appendStringToTextView("Error Occurred During subscription \(error?.localizedDescription as Any)")
+                    return
+                }
+                self?.appendStringToTextView("Subscribed to \(subChannel)")
             }
-            self.appendStringToTextView("Subscribed to \(subChannel)")
         }
     }
     
@@ -83,11 +88,15 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     // MARK: - MQTTSessionDelegates
 
     func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
-        appendStringToTextView("data received on topic \(message.topic) message \(message.stringRepresentation ?? "<>")")
+        DispatchQueue.main.async { [weak self] in
+            self?.appendStringToTextView("data received on topic \(message.topic) message \(message.stringRepresentation ?? "<>")")
+        }
     }
     
     func mqttDidDisconnect(session: MQTTSession, reason: MQTTSessionDisconnect, error: Error?) {
-        appendStringToTextView("Session Disconnected.")
+        DispatchQueue.main.async { [weak self] in
+            self?.appendStringToTextView("Session Disconnected.")
+        }
     }
     
     // MARK: - IBActions
