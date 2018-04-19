@@ -10,6 +10,7 @@ import Foundation
 
 public protocol MQTTSessionDelegate: class {
     func mqttDidReceive(message: MQTTMessage, from session: MQTTSession)
+    func mqttDidAcknowledgePing(from session: MQTTSession)
     func mqttDidDisconnect(session: MQTTSession, error: MQTTSessionError)
 }
 
@@ -137,7 +138,7 @@ open class MQTTSession: MQTTBroker {
             let message = MQTTMessage(publishPacket: publishPacket)
             delegate?.mqttDidReceive(message: message, from: self)
         case _ as MQTTPingResp:
-            break
+            delegate?.mqttDidAcknowledgePing(from: self)
         default:
             return
         }
