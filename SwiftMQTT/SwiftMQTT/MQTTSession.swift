@@ -16,7 +16,7 @@ public protocol MQTTSessionDelegate: class {
 
 public typealias MQTTSessionCompletionBlock = (_ error: MQTTSessionError) -> Void
 
-open class MQTTSession: MQTTBroker {
+open class MQTTSession {
 	
     let host: String
     let port: UInt16
@@ -76,6 +76,10 @@ open class MQTTSession: MQTTBroker {
             completion?(MQTTSessionError.socketError)
         }
     }
+
+    open func subscribe(to topic: String, delivering qos: MQTTQoS, completion: MQTTSessionCompletionBlock?) {
+        subscribe(to: [topic: qos], completion: completion)
+    }
     
     open func subscribe(to topics: [String: MQTTQoS], completion: MQTTSessionCompletionBlock?) {
         let msgID = nextMessageID()
@@ -85,6 +89,10 @@ open class MQTTSession: MQTTBroker {
         } else {
             completion?(MQTTSessionError.socketError)
         }
+    }
+
+    open func unSubscribe(from topic: String, completion: MQTTSessionCompletionBlock?) {
+        unSubscribe(from: [topic], completion: completion)
     }
     
     open func unSubscribe(from topics: [String], completion: MQTTSessionCompletionBlock?) {

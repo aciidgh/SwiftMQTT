@@ -28,9 +28,7 @@
 		5471A8E41BF231900079610F /* MQTTExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8E31BF231900079610F /* MQTTExtensions.swift */; };
 		55D218471ED094E200F0E2E6 /* MQTTSessionStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D218461ED094E200F0E2E6 /* MQTTSessionStream.swift */; };
 		55D2184B1ED09F9A00F0E2E6 /* MQTTMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D2184A1ED09F9A00F0E2E6 /* MQTTMessage.swift */; };
-		55D2184D1ED0A44800F0E2E6 /* MQTTBroker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D2184C1ED0A44800F0E2E6 /* MQTTBroker.swift */; };
 		55D2184F1ED213C200F0E2E6 /* MQTTPacketFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D2184E1ED213C200F0E2E6 /* MQTTPacketFactory.swift */; };
-		55D218551ED32DC600F0E2E6 /* MQTTDatedSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D218531ED32DC600F0E2E6 /* MQTTDatedSnapshot.swift */; };
 		55FF535A1EEAE4AD005BB8C4 /* MQTTStreamable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55FF53591EEAE4AD005BB8C4 /* MQTTStreamable.swift */; };
 /* End PBXBuildFile section */
 
@@ -69,9 +67,7 @@
 		5471A8E31BF231900079610F /* MQTTExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTExtensions.swift; sourceTree = "<group>"; };
 		55D218461ED094E200F0E2E6 /* MQTTSessionStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTSessionStream.swift; sourceTree = "<group>"; };
 		55D2184A1ED09F9A00F0E2E6 /* MQTTMessage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTMessage.swift; sourceTree = "<group>"; };
-		55D2184C1ED0A44800F0E2E6 /* MQTTBroker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTBroker.swift; sourceTree = "<group>"; };
 		55D2184E1ED213C200F0E2E6 /* MQTTPacketFactory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTPacketFactory.swift; sourceTree = "<group>"; };
-		55D218531ED32DC600F0E2E6 /* MQTTDatedSnapshot.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTDatedSnapshot.swift; sourceTree = "<group>"; };
 		55FF53591EEAE4AD005BB8C4 /* MQTTStreamable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTStreamable.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -141,8 +137,6 @@
 			isa = PBXGroup;
 			children = (
 				5463BA3C1BF4B9EF00EDE516 /* Models */,
-				55D218531ED32DC600F0E2E6 /* MQTTDatedSnapshot.swift */,
-				55D2184C1ED0A44800F0E2E6 /* MQTTBroker.swift */,
 				5471A8DF1BF22E9E0079610F /* MQTTSession.swift */,
 				55D218461ED094E200F0E2E6 /* MQTTSessionStream.swift */,
 				5471A8E31BF231900079610F /* MQTTExtensions.swift */,
@@ -272,12 +266,10 @@
 			files = (
 				5463BA441BF4BA6000EDE516 /* MQTTConnectPacket.swift in Sources */,
 				55D2184B1ED09F9A00F0E2E6 /* MQTTMessage.swift in Sources */,
-				55D218551ED32DC600F0E2E6 /* MQTTDatedSnapshot.swift in Sources */,
 				5471A8E01BF22E9E0079610F /* MQTTSession.swift in Sources */,
 				5463BA401BF4BA1A00EDE516 /* MQTTPacketFixedHeader.swift in Sources */,
 				5463BA521BF4BAE100EDE516 /* MQTTUnSubAckPacket.swift in Sources */,
 				5463BA4E1BF4BABB00EDE516 /* MQTTConnAckPacket.swift in Sources */,
-				55D2184D1ED0A44800F0E2E6 /* MQTTBroker.swift in Sources */,
 				5463BA501BF4BACE00EDE516 /* MQTTSubAckPacket.swift in Sources */,
 				5463BA461BF4BA7600EDE516 /* MQTTSubPacket.swift in Sources */,
 				5463BA541BF4BAF000EDE516 /* MQTTPubAck.swift in Sources */,
