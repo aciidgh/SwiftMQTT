@@ -24,8 +24,8 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
         textView.text = nil
         establishConnection()
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MQTTViewController.keyboardWillShow(_:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MQTTViewController.keyboardWillHide(_:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MQTTViewController.keyboardWillShow(_:)), name: .UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MQTTViewController.keyboardWillHide(_:)), name: .UIKeyboardWillHide, object: nil)
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(MQTTViewController.hideKeyboard))
         view.addGestureRecognizer(tapGesture)
@@ -55,28 +55,26 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
         appendStringToTextView("Trying to connect to \(host) on port \(port) for clientID \(clientID)")
 
         mqttSession.connect { (error) in
-            DispatchQueue.main.async { [weak self] in
-                switch error {
-                case .none:
-                    self?.appendStringToTextView("Connected.")
-                    self?.subscribeToChannel()
-                default:
-                    self?.appendStringToTextView("Error occurred during connection \(error.localizedDescription as Any)")
-                }
+            switch error {
+            case .none:
+                self.appendStringToTextView("Connected.")
+                self.subscribeToChannel()
+            default:
+                self.appendStringToTextView("Error occurred during connection:")
+                self.appendStringToTextView(error.localizedDescription)
             }
         }
     }
     
     func subscribeToChannel() {
-        let subChannel = "/#"
-        mqttSession.subscribe(to: subChannel, delivering: .atMostOnce) { (error) in
-            DispatchQueue.main.async { [weak self] in
-                switch error {
-                case .none:
-                    self?.appendStringToTextView("Subscribed to \(subChannel)")
-                default:
-                    self?.appendStringToTextView("Error occurred during subscription: \(error.localizedDescription)")
-                }
+        let channel = "/#"
+        mqttSession.subscribe(to: channel, delivering: .atLeastOnce) { (error) in
+            switch error {
+            case .none:
+                self.appendStringToTextView("Subscribed to \(channel)")
+            default:
+                self.appendStringToTextView("Error occurred during subscription:")
+                self.appendStringToTextView(error.localizedDescription)
             }
         }
     }
@@ -90,21 +88,18 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     // MARK: - MQTTSessionDelegates
 
     func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
-        DispatchQueue.main.async { [weak self] in
-            self?.appendStringToTextView("data received on topic \(message.topic) message \(message.stringRepresentation ?? "<>")")
-        }
+        appendStringToTextView("data received on topic \(message.topic) message \(message.stringRepresentation ?? "<>")")
     }
 
-    func mqttDidDisconnect(session: MQTTSession, reason: MQTTSessionDisconnectReason, error: MQTTSessionError?) {
-        DispatchQueue.main.async { [weak self] in
-            self?.appendStringToTextView("Session Disconnected.")
+    func mqttDidDisconnect(session: MQTTSession, error: MQTTSessionError) {
+        appendStringToTextView("Session Disconnected.")
+        if error != .none {
+            appendStringToTextView(error.localizedDescription)
         }
     }
 
     func mqttDidAcknowledgePing(from session: MQTTSession) {
-        DispatchQueue.main.async { [weak self] in
-            self?.appendStringToTextView("Ping acknowledged.")
-        }
+        appendStringToTextView("Keep-alive ping acknowledged.")
     }
     
     // MARK: - IBActions
@@ -124,13 +119,12 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
 
         let data = message.data(using: .utf8)!
         mqttSession.publish(data, in: channel, delivering: .atMostOnce, retain: false) { (error) in
-            DispatchQueue.main.async { [weak self] in
-                switch error {
-                case .none:
-                    self?.appendStringToTextView("Published \(message) on channel \(channel)")
-                default:
-                    self?.appendStringToTextView("Error Occurred During Publish \(error.localizedDescription)")
-                }
+            switch error {
+            case .none:
+                self.appendStringToTextView("Published \(message) on channel \(channel)")
+            default:
+                self.appendStringToTextView("Error Occurred During Publish:")
+                self.appendStringToTextView(error.localizedDescription)
             }
         }
     }
