@@ -32,6 +32,7 @@ open class MQTTSession {
     open var lastWillMessage: MQTTPubMsg?
 
     open weak var delegate: MQTTSessionDelegate?
+    open var delegateQueue = DispatchQueue.main
 
     private var keepAliveTimer: DispatchSourceTimer?
     private var connectionCompletionBlock: MQTTSessionCompletionBlock?
@@ -119,7 +120,9 @@ open class MQTTSession {
     private func cleanupDisconnection(_ error: MQTTSessionError) {
         stream = nil
         keepAliveTimer?.cancel()
-		delegate?.mqttDidDisconnect(session: self, error: error)
+        delegateQueue.async { [weak self] in
+            self?.delegate?.mqttDidDisconnect(session: self!, error: error)
+        }
     }
 
     @discardableResult
@@ -152,9 +155,13 @@ open class MQTTSession {
         case let publishPacket as MQTTPublishPacket:
             sendPubAck(for: publishPacket.messageID)
             let message = MQTTMessage(publishPacket: publishPacket)
-            delegate?.mqttDidReceive(message: message, from: self)
+            delegateQueue.async { [weak self] in
+                self?.delegate?.mqttDidReceive(message: message, from: self!)
+            }
         case _ as MQTTPingResp:
-            delegate?.mqttDidAcknowledgePing(from: self)
+            delegateQueue.async { [weak self] in
+                self?.delegate?.mqttDidAcknowledgePing(from: self!)
+            }
         default:
             return
         }
