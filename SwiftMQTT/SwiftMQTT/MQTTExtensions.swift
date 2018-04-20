@@ -97,3 +97,24 @@ extension MQTTSessionError: Equatable {
         }
     }
 }
+
+extension MQTTSessionError: CustomStringConvertible {
+
+    public var description: String {
+
+        switch self {
+        case .none:
+            return "None"
+        case .socketError:
+            return "Socket Error"
+        case .streamError:
+            return "Stream Error"
+        case .connectionError(let response):
+            return "Connection Error: \(response.localizedDescription)"
+        }
+    }
+
+    public var localizedDescription: String {
+        return description
+    }
+}
