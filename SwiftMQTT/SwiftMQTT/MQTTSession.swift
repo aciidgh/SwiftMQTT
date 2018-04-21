@@ -61,6 +61,7 @@ open class MQTTSession {
     }
     
     deinit {
+        delegate = nil
         disconnect()
     }
     

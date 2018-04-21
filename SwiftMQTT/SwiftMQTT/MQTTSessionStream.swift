@@ -61,6 +61,7 @@ class MQTTSessionStream: NSObject {
     }
     
     deinit {
+        delegate = nil
         inputStream?.close()
         inputStream?.remove(from: .current, forMode: .defaultRunLoopMode)
         outputStream?.close()
