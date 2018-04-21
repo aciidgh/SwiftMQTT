@@ -55,11 +55,10 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
         appendStringToTextView("Trying to connect to \(host) on port \(port) for clientID \(clientID)")
 
         mqttSession.connect { (error) in
-            switch error {
-            case .none:
+            if error == .none {
                 self.appendStringToTextView("Connected.")
                 self.subscribeToChannel()
-            default:
+            } else {
                 self.appendStringToTextView("Error occurred during connection:")
                 self.appendStringToTextView(error.localizedDescription)
             }
@@ -69,10 +68,9 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     func subscribeToChannel() {
         let channel = "/#"
         mqttSession.subscribe(to: channel, delivering: .atLeastOnce) { (error) in
-            switch error {
-            case .none:
+            if error == .none {
                 self.appendStringToTextView("Subscribed to \(channel)")
-            default:
+            } else {
                 self.appendStringToTextView("Error occurred during subscription:")
                 self.appendStringToTextView(error.localizedDescription)
             }
