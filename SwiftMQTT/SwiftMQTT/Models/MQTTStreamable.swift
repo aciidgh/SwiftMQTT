@@ -21,17 +21,17 @@ extension MQTTStreamable {
 
     static func readPackedLength(from read: StreamReader) -> Int? {
         var multiplier = 1
-        var value = 0
+        var length = 0
         var encodedByte: UInt8 = 0
         repeat {
-            let bytesRead = read(&encodedByte, 1)
-            if bytesRead < 0 {
+            let _ = read(&encodedByte, 1)
+            length += (Int(encodedByte) & 127) * multiplier
+            multiplier *= 128
+            if multiplier > 128*128*128 {
                 return nil
             }
-            value += (Int(encodedByte) & 127) * multiplier
-            multiplier *= 128
         } while ((Int(encodedByte) & 128) != 0)
-        return value <= 128*128*128 ? value : nil
+        return length <= 128*128*128 ? length : nil
     }
 }
 
