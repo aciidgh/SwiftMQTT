@@ -138,14 +138,17 @@ open class MQTTSession {
     }
     
     private func handle(_ packet: MQTTPacket) {
+
         switch packet {
         case let connAckPacket as MQTTConnAckPacket:
-            if connAckPacket.response == .connectionAccepted {
-                connectionCompletionBlock?(MQTTSessionError.none)
-            } else {
-                connectionCompletionBlock?(MQTTSessionError.connectionError(connAckPacket.response))
+            delegateQueue.async { [weak self] in
+                if connAckPacket.response == .connectionAccepted {
+                    self?.connectionCompletionBlock?(MQTTSessionError.none)
+                } else {
+                    self?.connectionCompletionBlock?(MQTTSessionError.connectionError(connAckPacket.response))
+                }
+                self?.connectionCompletionBlock = nil
             }
-            connectionCompletionBlock = nil
         case let subAckPacket as MQTTSubAckPacket:
             callSuccessCompletionBlock(for: subAckPacket.messageID)
         case let unSubAckPacket as MQTTUnSubAckPacket:
@@ -173,8 +176,10 @@ open class MQTTSession {
     }
     
     private func callSuccessCompletionBlock(for messageId: UInt16) {
-        let completionBlock = messagesCompletionBlocks.removeValue(forKey: messageId)
-        completionBlock?(MQTTSessionError.none)
+        delegateQueue.async { [weak self] in
+            let completionBlock = self?.messagesCompletionBlocks.removeValue(forKey: messageId)
+            completionBlock?(MQTTSessionError.none)
+        }
     }
     
     fileprivate func keepAliveTimerFired() {
@@ -202,8 +207,10 @@ extension MQTTSession: MQTTSessionStreamDelegate {
             connectPacket.lastWillMessage = lastWillMessage
 
             if send(connectPacket) == false {
-                connectionCompletionBlock?(MQTTSessionError.socketError)
-                connectionCompletionBlock = nil
+                delegateQueue.async { [weak self] in
+                    self?.connectionCompletionBlock?(MQTTSessionError.socketError)
+                    self?.connectionCompletionBlock = nil
+                }
             }
 
             keepAliveTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
@@ -215,7 +222,9 @@ extension MQTTSession: MQTTSessionStreamDelegate {
         }
         else {
             cleanupDisconnection(.socketError)
-            connectionCompletionBlock?(MQTTSessionError.socketError)
+            delegateQueue.async { [weak self] in
+                self?.connectionCompletionBlock?(MQTTSessionError.socketError)
+            }
         }
     }
 
