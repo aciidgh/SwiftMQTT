@@ -60,7 +60,7 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
                 self.subscribeToChannel()
             } else {
                 self.appendStringToTextView("Error occurred during connection:")
-                self.appendStringToTextView(error.localizedDescription)
+                self.appendStringToTextView(error.description)
             }
         }
     }
@@ -72,7 +72,7 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
                 self.appendStringToTextView("Subscribed to \(channel)")
             } else {
                 self.appendStringToTextView("Error occurred during subscription:")
-                self.appendStringToTextView(error.localizedDescription)
+                self.appendStringToTextView(error.description)
             }
         }
     }
@@ -92,7 +92,7 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     func mqttDidDisconnect(session: MQTTSession, error: MQTTSessionError) {
         appendStringToTextView("Session Disconnected.")
         if error != .none {
-            appendStringToTextView(error.localizedDescription)
+            appendStringToTextView(error.description)
         }
     }
 
@@ -122,7 +122,7 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
                 self.appendStringToTextView("Published \(message) on channel \(channel)")
             default:
                 self.appendStringToTextView("Error Occurred During Publish:")
-                self.appendStringToTextView(error.localizedDescription)
+                self.appendStringToTextView(error.description)
             }
         }
     }
