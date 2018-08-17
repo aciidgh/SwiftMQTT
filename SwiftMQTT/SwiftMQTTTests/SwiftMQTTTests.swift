@@ -10,51 +10,57 @@ import XCTest
 import Foundation
 @testable import SwiftMQTT
 
-class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
-    
-    var mqttSession: MQTTSession!
-    
+class SwiftMQTTTests: XCTestCase {
+
+    var session: MQTTSession!
+
+    var delegateMessageHandler: ((MQTTMessage) -> Void)?
+    var delegatePingHandler: (() -> Void)?
+    var delegateDisconnectHandler: ((_ error: MQTTSessionError) -> Void)?
+
     override func setUp() {
         super.setUp()
-		
-        mqttSession = MQTTSession(host: "localhost", port: 1883, clientID: "swift", cleanSession: true, keepAlive: 15)
-        mqttSession.delegate = self
-        mqttSession.connect { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error)")
+
+        session = MQTTSession(
+            host: "localhost",
+            port: 1883,
+            clientID: "SwiftMQTT_Tests",
+            cleanSession: true,
+            keepAlive: 2,
+            useSSL: false
+        )
+        session.delegate = self
+
+        let connection = expectation(description: "Establish Connection")
+        session.connect { error in
+            XCTAssertEqual(error, .none)
+            connection.fulfill()
         }
+        waitForExpectations(timeout: 5)
     }
-    
+
     override func tearDown() {
         super.tearDown()
-        mqttSession.disconnect()
+        session.disconnect()
     }
     
-    func testSuccessfulConnection() {
-        mqttSession.disconnect()
-		let expectation = self.expectation(description: "Connection Establishment")
-        mqttSession.connect {
-            XCTAssertTrue($0, "could not connect, error \($1)")
-            expectation.fulfill()
+    func testSuccessfulReconnection() {
+        session.disconnect()
+        let reconnection = expectation(description: "Restablish Connection")
+        session.connect { error in
+            XCTAssertEqual(error, .none)
+            reconnection.fulfill()
         }
-        waitForExpectations(timeout: 5) { error in
-            if let error = error {
-                print("Error:", error.localizedDescription)
-            }
-        }
+        waitForExpectations(timeout: 5)
     }
 
     func testSubscribe() {
-        let expectation = self.expectation(description: "Subscribe")
-        
-        mqttSession.subscribe(to: "/hey/cool", delivering: .atLeastOnce) { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error)")
-            expectation.fulfill()
+        let subscribe = expectation(description: "Subscribe")
+        session.subscribe(to: "/hey/cool", delivering: .atLeastOnce) { error in
+            XCTAssertEqual(error, .none)
+            subscribe.fulfill()
         }
-        waitForExpectations(timeout: 5) { error in
-            if let error = error {
-                print("Error:", error.localizedDescription)
-            }
-        }
+        waitForExpectations(timeout: 5)
     }
     
     func testMultiSubscribe() {
@@ -62,17 +68,13 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
             "/#": MQTTQoS.atLeastOnce,
             "/yo/sup": MQTTQoS.atMostOnce,
             "/yo/ok": MQTTQoS.exactlyOnce,
-        ]
-        let expectation = self.expectation(description: "Multi Subscribe")
-        mqttSession.subscribe(to: channels) { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error)")
-            expectation.fulfill()
+            ]
+        let multiSubscribe = expectation(description: "Multi Subscribe")
+        session.subscribe(to: channels) { error in
+            XCTAssertEqual(error, .none)
+            multiSubscribe.fulfill()
         }
-        waitForExpectations(timeout: 5) { error in
-            if let error = error {
-                print("Error:", error.localizedDescription)
-            }
-        }
+        waitForExpectations(timeout: 5)
     }
     
     func testPublishPacketHeader() {
@@ -94,7 +96,7 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
         
         let nonretainFlag = nonretainPubPacket.header.flags & 0x01
         
-        XCTAssert(nonretainFlag == 0, "Header retenion bit should not be set")
+        XCTAssert(nonretainFlag == 0, "Header retention bit should not be set")
         
         let qos1 = (nonretainPubPacket.header.flags & 0x06) >> 1
         
@@ -108,64 +110,83 @@ class SwiftMQTTTests: XCTestCase, MQTTSessionDelegate {
         let qos2 = (qos2PubPacket.header.flags & 0x06) >> 1
         
         XCTAssert(qos2 == 2, "QoS not 2 for .exactlyOnce")
-
     }
     
     func testUnSubscribe() {
-        let expectation = self.expectation(description: "unSubscribe")
-        mqttSession.unSubscribe(from: ["/hey/cool", "/no/ok"]) { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error)")
-            expectation.fulfill()
+        let unsubscribe = expectation(description: "unSubscribe")
+        session.unSubscribe(from: ["/hey/cool", "/no/ok"]) { error in
+            XCTAssertEqual(error, .none)
+            unsubscribe.fulfill()
         }
-        waitForExpectations(timeout: 5) { error in
-            if let error = error {
-                print("Error:", error.localizedDescription)
-            }
-        }
+        waitForExpectations(timeout: 5)
     }
     
     func testMultiUnSubscribe() {
-        let expectation = self.expectation(description: "Multi unSubscribe")
-        mqttSession.unSubscribe(from: "/hey/cool") { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error)")
-            expectation.fulfill()
+        let multiUnsubscribe = expectation(description: "Multi unSubscribe")
+        session.unSubscribe(from: "/hey/cool") { error in
+            XCTAssertEqual(error, .none)
+            multiUnsubscribe.fulfill()
         }
-        waitForExpectations(timeout: 5) { error in
-            if let error = error {
-                print("Error:", error.localizedDescription)
-            }
-        }
+        waitForExpectations(timeout: 5)
     }
     
     func testPublishData() {
-        let expectation = self.expectation(description: "Publish")
-        let jsonDict = ["hey" : "sup"]
-		let data = try! JSONSerialization.data(withJSONObject: jsonDict, options: .prettyPrinted)
-        
-        mqttSession.publish(data, in: "/hey/wassap", delivering: .atLeastOnce, retain: false) { (succeeded, error) -> Void in
-            XCTAssertTrue(succeeded, "could not connect, error \(error)")
-            expectation.fulfill()
+        let json = ["hey": "sup"]
+        let data = try! JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
+
+        let publish = expectation(description: "Publish")
+        session.publish(data, in: "/hey/wassap", delivering: .atLeastOnce, retain: false) { error in
+            XCTAssertEqual(error, .none)
+            publish.fulfill()
         }
-        waitForExpectations(timeout: 5) { error in
-            if let error = error {
-                print("Error:", error.localizedDescription)
-            }
-        }
-    }
-	
-    // MARK: MQTTSessionProtocol
-    
-    func mqttDidReceive(message data: Data, in topic: String, from session: MQTTSession) {
-        let stringData = String(data: data, encoding: .utf8)
-        print("received:", stringData, "in:", topic)
-    }
-    
-    func mqttDidDisconnect(session: MQTTSession) {
-        print("did disconnect")
-    }
-    
-    func mqttSocketErrorOccurred(session: MQTTSession) {
-        print("socket error")
+        waitForExpectations(timeout: 5)
     }
 
+    func testEndToEndSubscribePublishReceive() {
+        let channel = "test_channel"
+        let messageData = "hello".data(using: .utf8)!
+
+        let subscribe = expectation(description: "Subscribe")
+        session.subscribe(to: channel, delivering: .atMostOnce) { error in
+            XCTAssertEqual(error, .none)
+            subscribe.fulfill()
+        }
+        waitForExpectations(timeout: 5)
+
+        let publish = expectation(description: "Publish")
+        session.publish(messageData, in: channel, delivering: .atMostOnce, retain: false) { error in
+            XCTAssertEqual(error, .none)
+            publish.fulfill()
+        }
+
+        let receive = expectation(description: "Receive")
+        delegateMessageHandler = { (message) in
+            XCTAssertEqual(message.payload, messageData)
+            receive.fulfill()
+        }
+        wait(for: [publish, receive], timeout: 5, enforceOrder: true)
+    }
+
+    func testAcknowledgesPing() {
+        let ping = expectation(description: "Acknowledge Ping")
+        delegatePingHandler = {
+            ping.fulfill()
+        }
+        waitForExpectations(timeout: 5)
+    }
+}
+
+extension SwiftMQTTTests: MQTTSessionDelegate {
+
+    func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
+        delegateMessageHandler?(message)
+    }
+    
+    func mqttDidDisconnect(session: MQTTSession, error: MQTTSessionError) {
+        delegateDisconnectHandler?(error)
+    }
+
+    func mqttDidAcknowledgePing(from session: MQTTSession) {
+        delegatePingHandler?()
+    }
 }

@@ -56,15 +56,17 @@ class MQTTConnectPacket: MQTTPacket {
         return flags
     }
     
-    override func networkPacket() -> Data {
-        
-        var variableHeader = Data()
+    override func variableHeader() -> Data {
+        var variableHeader = Data(capacity: 1024)
         variableHeader.mqtt_append(protocolName)
         variableHeader.mqtt_append(protocolLevel)
         variableHeader.mqtt_append(encodedConnectFlags())
         variableHeader.mqtt_append(keepAlive)
-        
-        var payload = Data()
+        return variableHeader
+    }
+    
+    override func payload() -> Data {
+        var payload = Data(capacity: 1024)
         payload.mqtt_append(clientID)
         
         if let message = lastWillMessage {
@@ -77,7 +79,6 @@ class MQTTConnectPacket: MQTTPacket {
         if let password = password {
             payload.mqtt_append(password)
         }
-        
-        return finalPacket(variableHeader, payload: payload)
+        return payload
     }
 }

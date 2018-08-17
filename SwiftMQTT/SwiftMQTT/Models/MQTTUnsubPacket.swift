@@ -19,16 +19,17 @@ class MQTTUnsubPacket: MQTTPacket {
         super.init(header: MQTTPacketFixedHeader(packetType: .unSubscribe, flags: 0x02))
     }
     
-    override func networkPacket() -> Data {
-        // Variable Header
+    override func variableHeader() -> Data {
         var variableHeader = Data()
         variableHeader.mqtt_append(messageID)
-        
-        // Payload
-        var payload = Data()
+        return variableHeader
+    }
+    
+    override func payload() -> Data {
+        var payload = Data(capacity: 1024)
         for topic in topics {
             payload.mqtt_append(topic)
         }
-        return finalPacket(variableHeader, payload: payload)
+        return payload
     }
 }

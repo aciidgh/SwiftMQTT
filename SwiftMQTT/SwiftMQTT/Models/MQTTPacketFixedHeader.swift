@@ -8,7 +8,7 @@
 
 import Foundation
 
-class MQTTPacketFixedHeader {
+struct MQTTPacketFixedHeader {
     
     let packetType: MQTTPacketType
     let flags: UInt8

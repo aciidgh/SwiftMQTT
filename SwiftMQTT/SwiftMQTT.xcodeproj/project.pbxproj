@@ -21,12 +21,15 @@
 		5463BA541BF4BAF000EDE516 /* MQTTPubAck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5463BA531BF4BAF000EDE516 /* MQTTPubAck.swift */; };
 		5463BA561BF4BAFE00EDE516 /* MQTTPingResp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5463BA551BF4BAFE00EDE516 /* MQTTPingResp.swift */; };
 		5463BA581BF4BB1000EDE516 /* MQTTPingPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5463BA571BF4BB1000EDE516 /* MQTTPingPacket.swift */; };
-		5463BA5A1BF4BBDA00EDE516 /* MQTTSessionStreamDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5463BA591BF4BBDA00EDE516 /* MQTTSessionStreamDelegate.swift */; };
 		5471A89A1BF228900079610F /* SwiftMQTT.h in Headers */ = {isa = PBXBuildFile; fileRef = 5471A8991BF228900079610F /* SwiftMQTT.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5471A8A11BF228900079610F /* SwiftMQTT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5471A8961BF228900079610F /* SwiftMQTT.framework */; };
 		5471A8A61BF228900079610F /* SwiftMQTTTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8A51BF228900079610F /* SwiftMQTTTests.swift */; };
 		5471A8E01BF22E9E0079610F /* MQTTSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8DF1BF22E9E0079610F /* MQTTSession.swift */; };
 		5471A8E41BF231900079610F /* MQTTExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5471A8E31BF231900079610F /* MQTTExtensions.swift */; };
+		55D218471ED094E200F0E2E6 /* MQTTSessionStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D218461ED094E200F0E2E6 /* MQTTSessionStream.swift */; };
+		55D2184B1ED09F9A00F0E2E6 /* MQTTMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D2184A1ED09F9A00F0E2E6 /* MQTTMessage.swift */; };
+		55D2184F1ED213C200F0E2E6 /* MQTTPacketFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D2184E1ED213C200F0E2E6 /* MQTTPacketFactory.swift */; };
+		55FF535A1EEAE4AD005BB8C4 /* MQTTStreamable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55FF53591EEAE4AD005BB8C4 /* MQTTStreamable.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,7 +57,6 @@
 		5463BA531BF4BAF000EDE516 /* MQTTPubAck.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTPubAck.swift; sourceTree = "<group>"; };
 		5463BA551BF4BAFE00EDE516 /* MQTTPingResp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTPingResp.swift; sourceTree = "<group>"; };
 		5463BA571BF4BB1000EDE516 /* MQTTPingPacket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTPingPacket.swift; sourceTree = "<group>"; };
-		5463BA591BF4BBDA00EDE516 /* MQTTSessionStreamDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTSessionStreamDelegate.swift; sourceTree = "<group>"; };
 		5471A8961BF228900079610F /* SwiftMQTT.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftMQTT.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5471A8991BF228900079610F /* SwiftMQTT.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwiftMQTT.h; sourceTree = "<group>"; };
 		5471A89B1BF228900079610F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -63,6 +65,10 @@
 		5471A8A71BF228900079610F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5471A8DF1BF22E9E0079610F /* MQTTSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTSession.swift; sourceTree = "<group>"; };
 		5471A8E31BF231900079610F /* MQTTExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTExtensions.swift; sourceTree = "<group>"; };
+		55D218461ED094E200F0E2E6 /* MQTTSessionStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTSessionStream.swift; sourceTree = "<group>"; };
+		55D2184A1ED09F9A00F0E2E6 /* MQTTMessage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTMessage.swift; sourceTree = "<group>"; };
+		55D2184E1ED213C200F0E2E6 /* MQTTPacketFactory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTPacketFactory.swift; sourceTree = "<group>"; };
+		55FF53591EEAE4AD005BB8C4 /* MQTTStreamable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MQTTStreamable.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +107,9 @@
 				5463BA531BF4BAF000EDE516 /* MQTTPubAck.swift */,
 				5463BA551BF4BAFE00EDE516 /* MQTTPingResp.swift */,
 				5463BA571BF4BB1000EDE516 /* MQTTPingPacket.swift */,
+				55D2184A1ED09F9A00F0E2E6 /* MQTTMessage.swift */,
+				55D2184E1ED213C200F0E2E6 /* MQTTPacketFactory.swift */,
+				55FF53591EEAE4AD005BB8C4 /* MQTTStreamable.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -129,10 +138,10 @@
 			children = (
 				5463BA3C1BF4B9EF00EDE516 /* Models */,
 				5471A8DF1BF22E9E0079610F /* MQTTSession.swift */,
+				55D218461ED094E200F0E2E6 /* MQTTSessionStream.swift */,
 				5471A8E31BF231900079610F /* MQTTExtensions.swift */,
 				5471A8991BF228900079610F /* SwiftMQTT.h */,
 				5471A89B1BF228900079610F /* Info.plist */,
-				5463BA591BF4BBDA00EDE516 /* MQTTSessionStreamDelegate.swift */,
 			);
 			path = SwiftMQTT;
 			sourceTree = "<group>";
@@ -203,7 +212,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0710;
-				LastUpgradeCheck = 0800;
+				LastUpgradeCheck = 0930;
 				ORGANIZATIONNAME = Ankit;
 				TargetAttributes = {
 					5471A8951BF228900079610F = {
@@ -256,6 +265,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5463BA441BF4BA6000EDE516 /* MQTTConnectPacket.swift in Sources */,
+				55D2184B1ED09F9A00F0E2E6 /* MQTTMessage.swift in Sources */,
 				5471A8E01BF22E9E0079610F /* MQTTSession.swift in Sources */,
 				5463BA401BF4BA1A00EDE516 /* MQTTPacketFixedHeader.swift in Sources */,
 				5463BA521BF4BAE100EDE516 /* MQTTUnSubAckPacket.swift in Sources */,
@@ -265,12 +275,14 @@
 				5463BA541BF4BAF000EDE516 /* MQTTPubAck.swift in Sources */,
 				5463BA421BF4BA4200EDE516 /* MQTTPubMsg.swift in Sources */,
 				5463BA4A1BF4BA9B00EDE516 /* MQTTUnsubPacket.swift in Sources */,
+				55D218471ED094E200F0E2E6 /* MQTTSessionStream.swift in Sources */,
 				5463BA481BF4BA8500EDE516 /* MQTTDisconnectPacket.swift in Sources */,
 				5463BA581BF4BB1000EDE516 /* MQTTPingPacket.swift in Sources */,
+				55FF535A1EEAE4AD005BB8C4 /* MQTTStreamable.swift in Sources */,
 				5471A8E41BF231900079610F /* MQTTExtensions.swift in Sources */,
+				55D2184F1ED213C200F0E2E6 /* MQTTPacketFactory.swift in Sources */,
 				5463BA3E1BF4B9FD00EDE516 /* MQTTPacket.swift in Sources */,
 				5463BA4C1BF4BAAA00EDE516 /* MQTTPublishPacket.swift in Sources */,
-				5463BA5A1BF4BBDA00EDE516 /* MQTTSessionStreamDelegate.swift in Sources */,
 				5463BA561BF4BAFE00EDE516 /* MQTTPingResp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -302,14 +314,22 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -337,6 +357,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -351,14 +372,22 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -379,6 +408,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -402,7 +432,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -421,7 +450,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = im.ankit.SwiftMQTT;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
@@ -432,7 +460,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = im.ankit.SwiftMQTTTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -443,7 +470,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = im.ankit.SwiftMQTTTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};

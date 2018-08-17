@@ -28,16 +28,17 @@ class MQTTPublishPacket: MQTTPacket {
         return flags
     }
     
-    override func networkPacket() -> Data {
-        // Variable Header
-        var variableHeader = Data()
+    override func variableHeader() -> Data {
+        var variableHeader = Data(capacity: 1024)
         variableHeader.mqtt_append(message.topic)
         if message.QoS != .atMostOnce {
             variableHeader.mqtt_append(messageID)
         }
-        // Payload
-        let payload = message.payload
-        return finalPacket(variableHeader, payload: payload)
+        return variableHeader
+    }
+    
+    override func payload() -> Data {
+        return message.payload
     }
     
     init(header: MQTTPacketFixedHeader, networkData: Data) {

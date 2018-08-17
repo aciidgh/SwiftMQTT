@@ -8,9 +8,11 @@
 
 import Foundation
 
-enum MQTTSessionError: Error {
+public enum MQTTSessionError: Error {
     case none
     case socketError
+    case connectionError(MQTTConnAckResponse)
+    case streamError(Error?)
 }
 
 enum MQTTPacketType: UInt8 {
@@ -36,7 +38,7 @@ public enum MQTTQoS: UInt8 {
     case exactlyOnce    = 0x02
 }
 
-enum MQTTConnAckResponse: UInt8, Error {
+public enum MQTTConnAckResponse: UInt8, Error {
     case connectionAccepted     = 0x00
     case badProtocol            = 0x01
     case clientIDRejected       = 0x02
@@ -46,7 +48,6 @@ enum MQTTConnAckResponse: UInt8, Error {
 }
 
 extension Data {
-    
     mutating func mqtt_encodeRemaining(length: Int) {
         var lengthOfRemainingData = length
         repeat {
@@ -79,7 +80,41 @@ extension Data {
     }
     
     mutating func mqtt_append(_ string: String) {
-        mqtt_append(UInt16(string.characters.count))
+        mqtt_append(UInt16(string.count))
         append(string.data(using: .utf8)!)
+    }
+}
+
+extension MQTTSessionError: Equatable {
+    public static func ==(lhs: MQTTSessionError, rhs: MQTTSessionError) -> Bool {
+        switch (lhs, rhs) {
+        case (.none, .none), (.socketError, .socketError):
+            return true
+        case (.connectionError(let lhsResponse), .connectionError(let rhsResponse)):
+            return lhsResponse == rhsResponse
+        default:
+            return false
+        }
+    }
+}
+
+extension MQTTSessionError: CustomStringConvertible {
+
+    public var description: String {
+
+        switch self {
+        case .none:
+            return "None"
+        case .socketError:
+            return "Socket Error"
+        case .streamError:
+            return "Stream Error"
+        case .connectionError(let response):
+            return "Connection Error: \(response.localizedDescription)"
+        }
+    }
+
+    public var localizedDescription: String {
+        return description
     }
 }

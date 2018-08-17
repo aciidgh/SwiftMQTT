@@ -24,24 +24,24 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
         textView.text = nil
         establishConnection()
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MQTTViewController.keyboardWillShow(_:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MQTTViewController.keyboardWillHide(_:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MQTTViewController.keyboardWillShow(_:)), name: .UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MQTTViewController.keyboardWillHide(_:)), name: .UIKeyboardWillHide, object: nil)
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(MQTTViewController.hideKeyboard))
         view.addGestureRecognizer(tapGesture)
     }
     
-    func hideKeyboard() {
+    @objc func hideKeyboard() {
         view.endEditing(true)
     }
     
-    func keyboardWillShow(_ notification: Notification) {
+    @objc func keyboardWillShow(_ notification: Notification) {
         let userInfo = (notification as NSNotification).userInfo! as NSDictionary
         let kbHeight = (userInfo.object(forKey: UIKeyboardFrameBeginUserInfoKey) as! NSValue).cgRectValue.size.height
         bottomConstraint.constant = kbHeight
     }
     
-    func keyboardWillHide(_ notification: Notification) {
+    @objc func keyboardWillHide(_ notification: Notification) {
         bottomConstraint.constant = 0
     }
     
@@ -54,46 +54,50 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
         mqttSession.delegate = self
         appendStringToTextView("Trying to connect to \(host) on port \(port) for clientID \(clientID)")
 
-        mqttSession.connect {
-            if !$0 {
-                self.appendStringToTextView("Error Occurred During connection \($1)")
-                return
+        mqttSession.connect { (error) in
+            if error == .none {
+                self.appendStringToTextView("Connected.")
+                self.subscribeToChannel()
+            } else {
+                self.appendStringToTextView("Error occurred during connection:")
+                self.appendStringToTextView(error.description)
             }
-            self.appendStringToTextView("Connected.")
-            self.subscribeToChannel()
         }
     }
     
     func subscribeToChannel() {
-        let subChannel = "/#"
-        mqttSession.subscribe(to: subChannel, delivering: .atMostOnce) {
-            if !$0 {
-                self.appendStringToTextView("Error Occurred During subscription \($1)")
-                return
+        let channel = "/#"
+        mqttSession.subscribe(to: channel, delivering: .atLeastOnce) { (error) in
+            if error == .none {
+                self.appendStringToTextView("Subscribed to \(channel)")
+            } else {
+                self.appendStringToTextView("Error occurred during subscription:")
+                self.appendStringToTextView(error.description)
             }
-            self.appendStringToTextView("Subscribed to \(subChannel)")
         }
     }
     
     func appendStringToTextView(_ string: String) {
         textView.text = "\(textView.text ?? "")\n\(string)"
-        let range = NSMakeRange(textView.text.characters.count - 1, 1)
+        let range = NSMakeRange(textView.text.count - 1, 1)
         textView.scrollRangeToVisible(range)
     }
     
     // MARK: - MQTTSessionDelegates
 
-    func mqttSession(session: MQTTSession, received message: Data, in topic: String) {
-		let string = String(data: message, encoding: .utf8)!
-        appendStringToTextView("data received on topic \(topic) message \(string)")
+    func mqttDidReceive(message: MQTTMessage, from session: MQTTSession) {
+        appendStringToTextView("data received on topic \(message.topic) message \(message.stringRepresentation ?? "<>")")
     }
-    
-    func mqttSocketErrorOccurred(session: MQTTSession) {
-        appendStringToTextView("Socket Error")
-    }
-    
-    func mqttDidDisconnect(session: MQTTSession) {
+
+    func mqttDidDisconnect(session: MQTTSession, error: MQTTSessionError) {
         appendStringToTextView("Session Disconnected.")
+        if error != .none {
+            appendStringToTextView(error.description)
+        }
+    }
+
+    func mqttDidAcknowledgePing(from session: MQTTSession) {
+        appendStringToTextView("Keep-alive ping acknowledged.")
     }
     
     // MARK: - IBActions
@@ -106,29 +110,31 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     }
     
     @IBAction func sendButtonPressed(_ sender: AnyObject) {
-		
-		guard let channel = channelTextField.text, let message = messageTextField.text,
-			!channel.isEmpty && !message.isEmpty
-			else { return }
-		
-		let data = message.data(using: .utf8)!
-		mqttSession.publish(data, in: channel, delivering: .atMostOnce, retain: false) {
-			if !$0 {
-				self.appendStringToTextView("Error Occurred During Publish \($1)")
-				return
-			}
-			self.appendStringToTextView("Published \(message) on channel \(channel)")
-		}
-	}
-	
+
+        guard let channel = channelTextField.text, let message = messageTextField.text,
+            !channel.isEmpty && !message.isEmpty
+            else { return }
+
+        let data = message.data(using: .utf8)!
+        mqttSession.publish(data, in: channel, delivering: .atMostOnce, retain: false) { (error) in
+            switch error {
+            case .none:
+                self.appendStringToTextView("Published \(message) on channel \(channel)")
+            default:
+                self.appendStringToTextView("Error Occurred During Publish:")
+                self.appendStringToTextView(error.description)
+            }
+        }
+    }
+
     // MARK: - Utilities
-	
+
     func clientID() -> String {
 
         let userDefaults = UserDefaults.standard
         let clientIDPersistenceKey = "clientID"
-		let clientID: String
-		
+        let clientID: String
+
         if let savedClientID = userDefaults.object(forKey: clientIDPersistenceKey) as? String {
             clientID = savedClientID
         } else {
@@ -142,13 +148,14 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     
     // http://stackoverflow.com/questions/26845307/generate-random-alphanumeric-string-in-swift
     func randomStringWithLength(_ len: Int) -> String {
-        let letters = Array("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".characters)
+        let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
         var randomString = String()
         for _ in 0..<len {
             let length = UInt32(letters.count)
             let rand = arc4random_uniform(length)
-			randomString += String(letters[Int(rand)])
+            let index = String.Index(encodedOffset: Int(rand))
+            randomString += String(letters[index])
         }
         return String(randomString)
     }
