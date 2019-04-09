@@ -63,16 +63,16 @@ class MQTTSessionStream: NSObject {
                     self.connectTimeout()
                 }
             }
-            self.currentRunLoop.run() // Previously: EXEC_BAD_ACCESS
+            self.currentRunLoop.run()
         }
     }
     
     deinit {
         delegate = nil
         inputStream?.close()
-        inputStream?.remove(from: currentRunLoop, forMode: .defaultRunLoopMode) // Previously: Wrong Runloop?
+        inputStream?.remove(from: currentRunLoop, forMode: .defaultRunLoopMode)
         outputStream?.close()
-        outputStream?.remove(from: currentRunLoop, forMode: .defaultRunLoopMode) // Previously: Wrong Runloop?
+        outputStream?.remove(from: currentRunLoop, forMode: .defaultRunLoopMode)
     }
     
     var write: StreamWriter? {
@@ -121,7 +121,7 @@ extension MQTTSessionStream: StreamDelegate {
             }
 
         case Stream.Event.hasSpaceAvailable:
-            let wasReady = inputReady && outputReady // Previously: EXEC_BAD_ACCESS
+            let wasReady = inputReady && outputReady
             if aStream == outputStream {
                 outputReady = true
             }
