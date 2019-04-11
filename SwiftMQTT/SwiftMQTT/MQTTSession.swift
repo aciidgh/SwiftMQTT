@@ -23,9 +23,9 @@ open class MQTTSession {
     let connectionTimeout: TimeInterval
     let useSSL: Bool
     
-    open let cleanSession: Bool
-    open let keepAlive: UInt16
-    open let clientID: String
+    public let cleanSession: Bool
+    public let keepAlive: UInt16
+    public let clientID: String
 
     open var username: String?
     open var password: String?
