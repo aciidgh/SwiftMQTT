@@ -11,11 +11,12 @@ import Foundation
 protocol MQTTSessionStreamDelegate: class {
     func mqttReady(_ ready: Bool, in stream: MQTTSessionStream)
     func mqttErrorOccurred(in stream: MQTTSessionStream, error: Error?)
-	func mqttReceived(in stream: MQTTSessionStream, _ read: StreamReader)
+    func mqttReceived(in stream: MQTTSessionStream, _ read: StreamReader)
 }
 
 class MQTTSessionStream: NSObject {
     
+    private var currentRunLoop: RunLoop!
     private let inputStream: InputStream?
     private let outputStream: OutputStream?
     private var sessionQueue: DispatchQueue
@@ -39,11 +40,17 @@ class MQTTSessionStream: NSObject {
         
         inputStream?.delegate = self
         outputStream?.delegate = self
-        
+
         sessionQueue.async { [weak self] in
-            let currentRunLoop = RunLoop.current
-            inputStream?.schedule(in: currentRunLoop, forMode: .defaultRunLoopMode)
-            outputStream?.schedule(in: currentRunLoop, forMode: .defaultRunLoopMode)
+
+            guard let `self` = self else {
+                return
+            }
+
+            self.currentRunLoop = RunLoop.current
+            inputStream?.schedule(in: self.currentRunLoop, forMode: .defaultRunLoopMode)
+            outputStream?.schedule(in: self.currentRunLoop, forMode: .defaultRunLoopMode)
+
             inputStream?.open()
             outputStream?.open()
             if ssl {
@@ -53,19 +60,19 @@ class MQTTSessionStream: NSObject {
             }
             if timeout > 0 {
                 DispatchQueue.global().asyncAfter(deadline: .now() +  timeout) {
-                    self?.connectTimeout()
+                    self.connectTimeout()
                 }
             }
-            currentRunLoop.run()
+            self.currentRunLoop.run()
         }
     }
     
     deinit {
         delegate = nil
         inputStream?.close()
-        inputStream?.remove(from: .current, forMode: .defaultRunLoopMode)
+        inputStream?.remove(from: currentRunLoop, forMode: .defaultRunLoopMode)
         outputStream?.close()
-        outputStream?.remove(from: .current, forMode: .defaultRunLoopMode)
+        outputStream?.remove(from: currentRunLoop, forMode: .defaultRunLoopMode)
     }
     
     var write: StreamWriter? {
