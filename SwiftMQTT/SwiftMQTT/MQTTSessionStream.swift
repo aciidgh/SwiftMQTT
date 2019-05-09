@@ -69,6 +69,7 @@ class MQTTSessionStream: NSObject {
     
     deinit {
         delegate = nil
+        guard let currentRunLoop = currentRunLoop else { return }
         inputStream?.close()
         inputStream?.remove(from: currentRunLoop, forMode: .defaultRunLoopMode)
         outputStream?.close()
