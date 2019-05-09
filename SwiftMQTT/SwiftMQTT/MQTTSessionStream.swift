@@ -16,7 +16,7 @@ protocol MQTTSessionStreamDelegate: class {
 
 class MQTTSessionStream: NSObject {
     
-    private var currentRunLoop: RunLoop!
+    private var currentRunLoop: RunLoop?
     private let inputStream: InputStream?
     private let outputStream: OutputStream?
     private var sessionQueue: DispatchQueue
@@ -48,8 +48,8 @@ class MQTTSessionStream: NSObject {
             }
 
             self.currentRunLoop = RunLoop.current
-            inputStream?.schedule(in: self.currentRunLoop, forMode: .defaultRunLoopMode)
-            outputStream?.schedule(in: self.currentRunLoop, forMode: .defaultRunLoopMode)
+            inputStream?.schedule(in: self.currentRunLoop!, forMode: .defaultRunLoopMode)
+            outputStream?.schedule(in: self.currentRunLoop!, forMode: .defaultRunLoopMode)
 
             inputStream?.open()
             outputStream?.open()
@@ -63,7 +63,7 @@ class MQTTSessionStream: NSObject {
                     self.connectTimeout()
                 }
             }
-            self.currentRunLoop.run()
+            self.currentRunLoop!.run()
         }
     }
     
