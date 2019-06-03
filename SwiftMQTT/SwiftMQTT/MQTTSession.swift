@@ -157,7 +157,9 @@ open class MQTTSession {
         case let pubAck as MQTTPubAck:
             callSuccessCompletionBlock(for: pubAck.messageID)
         case let publishPacket as MQTTPublishPacket:
-            sendPubAck(for: publishPacket.messageID)
+            if publishPacket.message.QoS != .atMostOnce {
+                sendPubAck(for: publishPacket.messageID)
+            }
             let message = MQTTMessage(publishPacket: publishPacket)
             delegateQueue.async { [weak self] in
                 self?.delegate?.mqttDidReceive(message: message, from: self!)
