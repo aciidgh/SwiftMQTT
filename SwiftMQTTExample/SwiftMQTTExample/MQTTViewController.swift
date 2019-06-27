@@ -24,8 +24,8 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
         textView.text = nil
         establishConnection()
         
-        NotificationCenter.default.addObserver(self, selector: #selector(MQTTViewController.keyboardWillShow(_:)), name: .UIKeyboardWillShow, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MQTTViewController.keyboardWillHide(_:)), name: .UIKeyboardWillHide, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MQTTViewController.keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MQTTViewController.keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(MQTTViewController.hideKeyboard))
         view.addGestureRecognizer(tapGesture)
@@ -37,7 +37,7 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     
     @objc func keyboardWillShow(_ notification: Notification) {
         let userInfo = (notification as NSNotification).userInfo! as NSDictionary
-        let kbHeight = (userInfo.object(forKey: UIKeyboardFrameBeginUserInfoKey) as! NSValue).cgRectValue.size.height
+        let kbHeight = (userInfo.object(forKey: UIResponder.keyboardFrameBeginUserInfoKey) as! NSValue).cgRectValue.size.height
         bottomConstraint.constant = kbHeight
     }
     
@@ -46,7 +46,7 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
     }
     
     func establishConnection() {
-        let host = "localhost"
+        let host = "test.mosquitto.org"
         let port: UInt16 = 1883
         let clientID = self.clientID()
         
@@ -154,9 +154,15 @@ class MQTTViewController: UIViewController, MQTTSessionDelegate {
         for _ in 0..<len {
             let length = UInt32(letters.count)
             let rand = arc4random_uniform(length)
-            let index = String.Index(encodedOffset: Int(rand))
+            let index = String.Index(utf16Offset: Int(rand), in: letters)
             randomString += String(letters[index])
         }
         return String(randomString)
+    }
+}
+
+fileprivate extension String {
+    func indexOf(char: Character) -> Int? {
+        return firstIndex(of: char)?.utf16Offset(in: self)
     }
 }
