@@ -22,7 +22,7 @@ class SwiftMQTTTests: XCTestCase {
         super.setUp()
 
         session = MQTTSession(
-            host: "localhost",
+            host: "test.mosquitto.org",
             port: 1883,
             clientID: "SwiftMQTT_Tests",
             cleanSession: true,
