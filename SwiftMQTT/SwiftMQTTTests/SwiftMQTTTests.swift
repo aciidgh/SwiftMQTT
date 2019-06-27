@@ -118,7 +118,7 @@ class SwiftMQTTTests: XCTestCase {
             XCTAssertEqual(error, .none)
             unsubscribe.fulfill()
         }
-        waitForExpectations(timeout: 5)
+        waitForExpectations(timeout: 15)
     }
     
     func testMultiUnSubscribe() {
