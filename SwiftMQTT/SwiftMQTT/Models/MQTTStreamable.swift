@@ -47,32 +47,42 @@ extension Data: MQTTStreamable {
     mutating func read(from read: StreamReader) -> Bool {
         let totalLength = self.count
         var readLength: Int = 0
-        self.withUnsafeBytes { (buffer: UnsafePointer<UInt8>) in
+        
+        let _ = self.withUnsafeMutableBytes { (buffer) -> UInt8 in
             repeat {
-                let b = UnsafeMutablePointer(mutating: buffer) + readLength
+                let point = buffer.bindMemory(to: UInt8.self)
+                let unsafePointer = point.baseAddress!
+                let b = UnsafeMutablePointer(mutating: unsafePointer) + readLength
                 let bytesRead = read(b, totalLength - readLength)
                 if bytesRead < 0 {
                     break
                 }
                 readLength += bytesRead
             } while readLength < totalLength
+            return 0
         }
+        
         return readLength == totalLength
     }
+
     
     func write(to write: StreamWriter) -> Bool {
         let totalLength = self.count
         guard totalLength <= 128*128*128 else { return false }
         var writeLength: Int = 0
-        self.withUnsafeBytes { (buffer: UnsafePointer<UInt8>) in
+        
+        let _ = self.withUnsafeBytes { (buffer) -> UInt8 in
             repeat {
-                let b = UnsafeMutablePointer(mutating: buffer) + writeLength
+                let point = buffer.bindMemory(to: UInt8.self)
+                let unsafePointer = point.baseAddress!
+                let b = UnsafeMutablePointer(mutating: unsafePointer) + writeLength
                 let byteWritten = write(b, totalLength - writeLength)
                 if byteWritten < 0 {
                     break
                 }
                 writeLength += byteWritten
             } while writeLength < totalLength
+            return 0
         }
         return writeLength == totalLength
     }
