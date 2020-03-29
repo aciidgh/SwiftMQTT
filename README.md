@@ -16,8 +16,8 @@
     </a>
 </p>
 <p align="center">
-    <a href="https://travis-ci.org/aciidb0mb3r/SwiftMQTT">
-        <img src="https://travis-ci.org/aciidb0mb3r/SwiftMQTT.svg" alt="Donale">
+    <a href="https://travis-ci.org/github/anatoliykant/SwiftMQTT">
+        <img src="https://travis-ci.org/anatoliykant/SwiftMQTT.svg?branch=develop" alt="Donale">
    </a>
    <a href="https://codecov.io/gh/anatoliykant/SwiftMQTT">
         <img src="https://codecov.io/gh/anatoliykant/SwiftMQTT/branch/develop/graph/badge.svg" />

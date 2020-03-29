@@ -1,11 +1,15 @@
-language: objective-c
+language: swift
 os: osx
-osx_image: xcode10.2
-xcode_sdk: iphonesimulator10.2
+osx_image: xcode11.3
+xcode_sdk: iphonesimulator13.2
 
 before_install:
-# - brew update
-# - brew install mosquitto
+    # - brew update
+    # - brew install mosquitto
+
 script:
-# - /usr/local/opt/mosquitto/sbin/mosquitto -d
-- xcodebuild -project SwiftMQTT/SwiftMQTT.xcodeproj -scheme SwiftMQTT -sdk iphonesimulator -destination "name=iPhone 8 Plus" test
+    # - /usr/local/opt/mosquitto/sbin/mosquitto -d
+    - xcodebuild -project SwiftMQTT/SwiftMQTT.xcodeproj -scheme SwiftMQTT -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone X" build test
+
+after_success:
+    - bash <(curl -s https://codecov.io/bash)
