@@ -1,0 +1,17 @@
+codecov:
+  branch: develop
+
+coverage:
+  precision: 2
+  round: up
+  range: "3...100"
+
+  ignore:
+    - "SwiftMQTTExample"
+    - "SwiftMQTT/SwiftMQTTTests/.*"
+    - "Library/UI/.*"
+    - "Library/Sources/Utils/Reachability.swift"
+    - "Library/Sources/Utils/IDGenerator.swift"
+    - "Library/Sources/Extensions/Numbers+Extensions.swift"
+    - "Library/Sources/Extensions/URLOpener.swift"
+    - "Library/Sources/Extensions/VKURLSession.swift"
