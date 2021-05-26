@@ -128,7 +128,7 @@ open class MQTTSession {
     
     private func cleanupDisconnectionOnDelegateQueue(_ error: MQTTSessionError) {
         if self.cleanSession == true {
-            let callbacks = self.messagesCompletionBlocks.values
+            let callbacks = [MQTTSessionCompletionBlock](self.messagesCompletionBlocks.values)
             self.messagesCompletionBlocks.removeAll()
             for c in callbacks {
                 c(error)
