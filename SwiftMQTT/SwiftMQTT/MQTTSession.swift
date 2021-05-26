@@ -122,8 +122,19 @@ open class MQTTSession {
         stream = nil
         keepAliveTimer?.cancel()
         delegateQueue.async { [weak self] in
-            self?.delegate?.mqttDidDisconnect(session: self!, error: error)
+            self?.cleanupDisconnectionOnDelegateQueue(error)
         }
+    }
+    
+    private func cleanupDisconnectionOnDelegateQueue(_ error: MQTTSessionError) {
+        if self.cleanSession == true {
+            let callbacks = self.messagesCompletionBlocks.values
+            self.messagesCompletionBlocks.removeAll()
+            for c in callbacks {
+                c(error)
+            }
+        }
+        self.delegate?.mqttDidDisconnect(session: self, error: error)
     }
 
     @discardableResult
