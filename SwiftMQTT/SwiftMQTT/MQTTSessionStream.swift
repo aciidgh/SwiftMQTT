@@ -8,7 +8,7 @@
 
 import Foundation
 
-protocol MQTTSessionStreamDelegate: class {
+protocol MQTTSessionStreamDelegate: AnyObject {
     func mqttReady(_ ready: Bool, in stream: MQTTSessionStream)
     func mqttErrorOccurred(in stream: MQTTSessionStream, error: Error?)
     func mqttReceived(in stream: MQTTSessionStream, _ read: StreamReader)
@@ -48,8 +48,8 @@ class MQTTSessionStream: NSObject {
             }
 
             self.currentRunLoop = RunLoop.current
-            inputStream?.schedule(in: self.currentRunLoop!, forMode: .defaultRunLoopMode)
-            outputStream?.schedule(in: self.currentRunLoop!, forMode: .defaultRunLoopMode)
+            inputStream?.schedule(in: self.currentRunLoop!, forMode: .default)
+            outputStream?.schedule(in: self.currentRunLoop!, forMode: .default)
 
             inputStream?.open()
             outputStream?.open()
@@ -71,9 +71,9 @@ class MQTTSessionStream: NSObject {
         delegate = nil
         guard let currentRunLoop = currentRunLoop else { return }
         inputStream?.close()
-        inputStream?.remove(from: currentRunLoop, forMode: .defaultRunLoopMode)
+        inputStream?.remove(from: currentRunLoop, forMode: .default)
         outputStream?.close()
-        outputStream?.remove(from: currentRunLoop, forMode: .defaultRunLoopMode)
+        outputStream?.remove(from: currentRunLoop, forMode: .default)
     }
     
     var write: StreamWriter? {
