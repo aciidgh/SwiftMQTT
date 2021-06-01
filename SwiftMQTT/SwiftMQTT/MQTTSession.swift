@@ -70,7 +70,6 @@ open class MQTTSession {
         let pubMsg = MQTTPubMsg(topic: topic, payload: data, retain: retain, QoS: qos)
         let publishPacket = MQTTPublishPacket(messageID: msgID, message: pubMsg)
         if send(publishPacket) {
-            print("publish message \(msgID)")
             if qos == .atMostOnce {
                 completion?(MQTTSessionError.none)
             } else {
@@ -281,8 +280,7 @@ extension MQTTSession: MQTTSessionStreamDelegate {
                 self?.keepAliveTimerFired()
             }
             keepAliveTimer!.resume()
-        }
-        else {
+        } else {
             cleanupDisconnection(.socketError)
             delegateQueue.async { [weak self] in
                 self?.connectionCompletionBlock?(MQTTSessionError.socketError)
