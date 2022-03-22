@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol MQTTSessionDelegate: class {
+public protocol MQTTSessionDelegate: AnyObject {
     func mqttDidReceive(message: MQTTMessage, from session: MQTTSession)
     func mqttDidAcknowledgePing(from session: MQTTSession)
     func mqttDidDisconnect(session: MQTTSession, error: MQTTSessionError)
@@ -36,7 +36,7 @@ open class MQTTSession {
 
     private var keepAliveTimer: DispatchSourceTimer?
     private var connectionCompletionBlock: MQTTSessionCompletionBlock?
-    private var messagesCompletionBlocks = [UInt16: MQTTSessionCompletionBlock]()
+    private var completions = [UInt16: Completion]()
     private var factory: MQTTPacketFactory
     
     private var stream: MQTTSessionStream?
@@ -70,9 +70,10 @@ open class MQTTSession {
         let pubMsg = MQTTPubMsg(topic: topic, payload: data, retain: retain, QoS: qos)
         let publishPacket = MQTTPublishPacket(messageID: msgID, message: pubMsg)
         if send(publishPacket) {
-            messagesCompletionBlocks[msgID] = completion
             if qos == .atMostOnce {
                 completion?(MQTTSessionError.none)
+            } else {
+                completions[msgID] = Completion(publishPacket, completion)
             }
         } else {
             completion?(MQTTSessionError.socketError)
@@ -87,7 +88,7 @@ open class MQTTSession {
         let msgID = nextMessageID()
         let subscribePacket = MQTTSubPacket(topics: topics, messageID: msgID)
         if send(subscribePacket) {
-            messagesCompletionBlocks[msgID] = completion
+            completions[msgID] = Completion(subscribePacket, completion)
         } else {
             completion?(MQTTSessionError.socketError)
         }
@@ -101,7 +102,7 @@ open class MQTTSession {
         let msgID = nextMessageID()
         let unSubPacket = MQTTUnsubPacket(topics: topics, messageID: msgID)
         if send(unSubPacket) {
-            messagesCompletionBlocks[msgID] = completion
+            completions[msgID] = Completion(unSubPacket, completion)
         } else {
             completion?(MQTTSessionError.socketError)
         }
@@ -122,8 +123,19 @@ open class MQTTSession {
         stream = nil
         keepAliveTimer?.cancel()
         delegateQueue.async { [weak self] in
-            self?.delegate?.mqttDidDisconnect(session: self!, error: error)
+            self?.cleanupDisconnectionOnDelegateQueue(error)
         }
+    }
+    
+    private func cleanupDisconnectionOnDelegateQueue(_ error: MQTTSessionError) {
+        if self.cleanSession == true {
+            let callbacks = [Completion](self.completions.values)
+            self.completions.removeAll()
+            for c in callbacks {
+                c.on(error)
+            }
+        }
+        self.delegate?.mqttDidDisconnect(session: self, error: error)
     }
 
     @discardableResult
@@ -151,11 +163,11 @@ open class MQTTSession {
                 self?.connectionCompletionBlock = nil
             }
         case let subAckPacket as MQTTSubAckPacket:
-            callSuccessCompletionBlock(for: subAckPacket.messageID)
+            callSuccessCompletionBlock(for: subAckPacket.messageID, packet: packet)
         case let unSubAckPacket as MQTTUnSubAckPacket:
-            callSuccessCompletionBlock(for: unSubAckPacket.messageID)
+            callSuccessCompletionBlock(for: unSubAckPacket.messageID, packet: packet)
         case let pubAck as MQTTPubAck:
-            callSuccessCompletionBlock(for: pubAck.messageID)
+            callSuccessCompletionBlock(for: pubAck.messageID, packet: packet)
         case let publishPacket as MQTTPublishPacket:
             sendPubAck(for: publishPacket.messageID)
             let message = MQTTMessage(publishPacket: publishPacket)
@@ -176,11 +188,40 @@ open class MQTTSession {
         send(pubAck)
     }
     
-    private func callSuccessCompletionBlock(for messageId: UInt16) {
+    private func callSuccessCompletionBlock(for messageId: UInt16, packet: MQTTPacket) {
         delegateQueue.async { [weak self] in
-            let completionBlock = self?.messagesCompletionBlocks.removeValue(forKey: messageId)
-            completionBlock?(MQTTSessionError.none)
+            if let completion = self?.completions.removeValue(forKey: messageId) {
+                completion.on(MQTTSessionError.none)
+            } else if messageId == 0 {
+                //some server doesn't take the message id back in Ack packet
+                //we need process this special case
+                self?.tryCompleteAck(ackPacket: packet)
+            }
         }
+    }
+    
+    private func tryCompleteAck(ackPacket: MQTTPacket) {
+        var completion: Completion?
+        if ackPacket is MQTTSubAckPacket {
+            for t in self.completions {
+                if t.value.packet is MQTTSubPacket {
+                    completion = self.completions.removeValue(forKey: t.key)
+                    let subAck = ackPacket as! MQTTSubAckPacket
+                    completion?.on(subAck.success ? .none : .connectionError(.badProtocol))
+                    return
+                }
+            }
+        } else if ackPacket is MQTTPubAck {
+            for t in self.completions {
+                if t.value.packet is MQTTPublishPacket {
+                    completion = self.completions.removeValue(forKey: t.key)
+                    completion?.on(.none)
+                    return
+                }
+            }
+        }
+        
+        
     }
     
     fileprivate func keepAliveTimerFired() {
@@ -188,11 +229,30 @@ open class MQTTSession {
         send(mqttPingReq)
     }
     
-    private var messageID = UInt16(0)
+    private var messageID = UInt16(123)
     
     private func nextMessageID() -> UInt16 {
         messageID += 1
+        if messageID >= 32767 {
+            messageID = 1 //escape 0 for special case of SubACK
+        }
         return messageID
+    }
+}
+
+private extension MQTTSession {
+    class Completion {
+        let callback: MQTTSessionCompletionBlock?
+        let packet: MQTTPacket
+        
+        init(_ p: MQTTPacket, _ c: MQTTSessionCompletionBlock?) {
+            packet = p
+            callback = c
+        }
+        
+        func on(_ error: MQTTSessionError) {
+            callback?(error)
+        }
     }
 }
 
@@ -220,8 +280,7 @@ extension MQTTSession: MQTTSessionStreamDelegate {
                 self?.keepAliveTimerFired()
             }
             keepAliveTimer!.resume()
-        }
-        else {
+        } else {
             cleanupDisconnection(.socketError)
             delegateQueue.async { [weak self] in
                 self?.connectionCompletionBlock?(MQTTSessionError.socketError)

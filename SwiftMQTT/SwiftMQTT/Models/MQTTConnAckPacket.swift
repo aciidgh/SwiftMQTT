@@ -13,10 +13,14 @@ class MQTTConnAckPacket: MQTTPacket {
     let sessionPresent: Bool
     let response: MQTTConnAckResponse
     
-    init(header: MQTTPacketFixedHeader, networkData: Data) {
-        sessionPresent = (networkData[0] & 0x01) == 0x01
-        response = MQTTConnAckResponse(rawValue: networkData[1])!
-        
-        super.init(header: header)
+    init?(header: MQTTPacketFixedHeader, networkData: Data) {
+        if networkData.count >= 2 {
+            sessionPresent = (networkData[0] & 0x01) == 0x01
+            response = MQTTConnAckResponse(rawValue: networkData[1])!
+            
+            super.init(header: header)
+        } else {
+            return nil
+        }
     }
 }

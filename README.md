@@ -98,28 +98,11 @@ func mqttDidDisconnect(session: MQTTSession, error: MQTTSessionError) {
 
 ## Installation
 
-### CocoaPods
-
-Install using [CocoaPods](http://cocoapods.org) by adding the following lines to your Podfile:
-
-````ruby
-target 'MyApp' do
-    use_frameworks!
-    pod 'SwiftMQTT'
-end
-````
-
-### Carthage
-
-```
-github "aciidb0mb3r/SwiftMQTT"
-```
-
 ### Swift Package Manager
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/aciidb0mb3r/SwiftMQTT.git", from: "3.0.0")
+    .package(url: "https://github.com/GuanXP/SwiftMQTT.git", from: "3.0.4")
 ]
 ```
 ## License

@@ -23,8 +23,12 @@ class MQTTPubAck: MQTTPacket {
         return variableHeader
     }
     
-    init(header: MQTTPacketFixedHeader, networkData: Data) {
-        messageID = (UInt16(networkData[0]) * UInt16(256)) + UInt16(networkData[1])
-        super.init(header: header)
+    init?(header: MQTTPacketFixedHeader, networkData: Data) {
+        if networkData.count >= 2 {
+            messageID = (UInt16(networkData[0]) * UInt16(256)) + UInt16(networkData[1])
+            super.init(header: header)
+        } else {
+            return nil
+        }
     }
 }

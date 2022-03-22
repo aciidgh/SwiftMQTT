@@ -10,7 +10,7 @@ import Foundation
 
 struct MQTTPacketFactory {
 
-    let constructors: [MQTTPacketType : (MQTTPacketFixedHeader, Data)->MQTTPacket] = [
+    let constructors: [MQTTPacketType : (MQTTPacketFixedHeader, Data)->MQTTPacket?] = [
         .connAck : MQTTConnAckPacket.init,
         .subAck : MQTTSubAckPacket.init,
         .unSubAck : MQTTUnSubAckPacket.init,
